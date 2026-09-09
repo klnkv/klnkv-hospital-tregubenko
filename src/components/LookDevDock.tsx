@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { LOOKDEV_EDITS, LOOKDEV_VIEWER, formatKyiv } from "@/game/changelog";
+import { LOOKDEV_EDITS, LOOKDEV_RELEASE, LOOKDEV_VIEWER, formatKyiv } from "@/game/changelog";
 import { publicUrl } from "@/game/constants";
 
-type RemoteStamp = { builtAt: string };
+type RemoteStamp = { builtAt: string; release?: string };
 
 const LOCAL_BUILT = import.meta.env.VITE_BUILD_AT ?? LOOKDEV_EDITS[0]?.at ?? "";
 
@@ -59,10 +59,10 @@ export function LookDevDock({ placement = "hud" }: { placement?: "title" | "hud"
         }
       >
         <span className="block text-[10px] uppercase tracking-[0.16em] opacity-70">
-          {LOOKDEV_VIEWER} · look-dev
+          {LOOKDEV_VIEWER} · {LOOKDEV_RELEASE}
         </span>
         <span className="block font-mono text-xs">
-          {newer ? "Новая сборка · нажми" : `сборка ${kyivClock(LOCAL_BUILT)}`}
+          {newer ? "Новая сборка · нажми" : kyivClock(LOCAL_BUILT)}
         </span>
       </button>
 
@@ -73,7 +73,7 @@ export function LookDevDock({ placement = "hud" }: { placement?: "title" | "hud"
               <div>
                 <p className="font-display text-lg text-fg">Для {LOOKDEV_VIEWER}</p>
                 <p className="text-xs text-muted">
-                  Актуальная сборка · {kyivClock(LOCAL_BUILT)} · Киев
+                  {LOOKDEV_RELEASE} · {kyivClock(LOCAL_BUILT)} · Киев
                 </p>
               </div>
               <button

@@ -20,3 +20,6 @@ attachments/
 coverage/
 *.local
 .node_modules.lock
+.project_id
+AGENTS.md
+migrations/

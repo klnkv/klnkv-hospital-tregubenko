@@ -1,6 +1,9 @@
+import { LOOKDEV_RELEASE } from "@/game/version";
+
 /** Look-dev лента для Кристины. Этот чат ей не нужен — только прогулка. */
 
 export const LOOKDEV_VIEWER = "Кристина";
+export { LOOKDEV_RELEASE };
 
 export type LookDevEdit = {
   at: string;
@@ -9,6 +12,11 @@ export type LookDevEdit = {
 };
 
 export const LOOKDEV_EDITS: LookDevEdit[] = [
+  {
+    at: "2026-09-09T20:56:00+03:00",
+    where: "версии",
+    title: "Git: прогулка Кристины = тег lookdev/r2, продакшен — этот чат",
+  },
   {
     at: "2026-09-09T20:02:00+03:00",
     where: "весь кадр",
