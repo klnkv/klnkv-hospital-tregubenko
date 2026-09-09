@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import {
+  CC_FIXED_DT,
   EYE,
   FLOOR_ORDER,
   FLOOR_Z,
@@ -7,6 +8,7 @@ import {
   SPRINT_SPEED,
   WALK_SPEED,
 } from "./constants";
+import { moveCharacter } from "./controller";
 import {
   corridorAt,
   coreRooms,
@@ -124,6 +126,7 @@ export function mountEngine(
   let touchLook: { id: number; x: number; y: number } | null = null;
   let stick = { x: 0, y: 0 };
   let hudAcc = 0;
+  let physAcc = 0;
 
   world.setInteriorFloor(floor);
   world.setMassingVisible(true);
@@ -184,28 +187,49 @@ export function mountEngine(
   }
 
   function tryMove(nx: number, ny: number) {
-    const pad = PLAYER_RADIUS;
-    const dx = nx - x;
-    const dy = ny - y;
-    const dist = Math.hypot(dx, dy);
-    const steps = Math.max(1, Math.ceil(dist / 0.1));
-    let cx = x;
-    let cy = y;
-    const sx = dx / steps;
-    const sy = dy / steps;
-    for (let i = 0; i < steps; i++) {
-      const tx = cx + sx;
-      const ty = cy + sy;
-      if (isWalkable(floor, tx, ty, pad)) {
-        cx = tx;
-        cy = ty;
-        continue;
-      }
-      if (isWalkable(floor, tx, cy, pad)) cx = tx;
-      if (isWalkable(floor, cx, ty, pad)) cy = ty;
+    const moved = moveCharacter(floor, x, y, nx - x, ny - y);
+    x = moved.x;
+    y = moved.y;
+  }
+
+  function walkPhysics(dt: number) {
+    const k = held();
+    const sprint = k.has("ShiftLeft") || k.has("ShiftRight");
+    const sp = sprint ? SPRINT_SPEED : WALK_SPEED;
+    let fx = 0;
+    let fy = 0;
+    const fwdX = -Math.sin(yaw);
+    const fwdY = Math.cos(yaw);
+    const rightX = Math.cos(yaw);
+    const rightY = Math.sin(yaw);
+    if (k.has("KeyW") || k.has("ArrowUp")) {
+      fx += fwdX;
+      fy += fwdY;
     }
-    x = cx;
-    y = cy;
+    if (k.has("KeyS") || k.has("ArrowDown")) {
+      fx -= fwdX;
+      fy -= fwdY;
+    }
+    if (k.has("KeyD") || k.has("ArrowRight")) {
+      fx += rightX;
+      fy += rightY;
+    }
+    if (k.has("KeyA") || k.has("ArrowLeft")) {
+      fx -= rightX;
+      fy -= rightY;
+    }
+    fx += stick.x * rightX + stick.y * fwdX;
+    fy += stick.x * rightY + stick.y * fwdY;
+    const len = Math.hypot(fx, fy);
+    if (len > 1e-4) {
+      fx /= len;
+      fy /= len;
+      tryMove(x + fx * sp * dt, y + fy * sp * dt);
+      speed = sp;
+      bob += dt * (sprint ? 14 : 10);
+    } else {
+      speed = 0;
+    }
   }
 
   function step(now: number) {
@@ -223,42 +247,11 @@ export function mountEngine(
       if (k.has("KeyS") || k.has("ArrowDown")) orbitD = Math.min(160, orbitD + dt * 28);
       applyCamera();
     } else if (mode === "walk") {
-      const k = held();
-      const sprint = k.has("ShiftLeft") || k.has("ShiftRight");
-      const sp = sprint ? SPRINT_SPEED : WALK_SPEED;
-      let fx = 0;
-      let fy = 0;
-      const fwdX = -Math.sin(yaw);
-      const fwdY = Math.cos(yaw);
-      const rightX = Math.cos(yaw);
-      const rightY = Math.sin(yaw);
-      if (k.has("KeyW") || k.has("ArrowUp")) {
-        fx += fwdX;
-        fy += fwdY;
-      }
-      if (k.has("KeyS") || k.has("ArrowDown")) {
-        fx -= fwdX;
-        fy -= fwdY;
-      }
-      if (k.has("KeyD") || k.has("ArrowRight")) {
-        fx += rightX;
-        fy += rightY;
-      }
-      if (k.has("KeyA") || k.has("ArrowLeft")) {
-        fx -= rightX;
-        fy -= rightY;
-      }
-      fx += stick.x * rightX + stick.y * fwdX;
-      fy += stick.x * rightY + stick.y * fwdY;
-      const len = Math.hypot(fx, fy);
-      if (len > 1e-4) {
-        fx /= len;
-        fy /= len;
-        tryMove(x + fx * sp * dt, y + fy * sp * dt);
-        speed = sp;
-        bob += dt * (sprint ? 14 : 10);
-      } else {
-        speed = 0;
+      physAcc += dt;
+      if (physAcc > 0.2) physAcc = 0.2;
+      while (physAcc >= CC_FIXED_DT) {
+        walkPhysics(CC_FIXED_DT);
+        physAcc -= CC_FIXED_DT;
       }
       applyCamera();
       hudAcc += dt;

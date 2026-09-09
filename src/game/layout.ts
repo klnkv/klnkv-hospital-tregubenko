@@ -370,21 +370,19 @@ export function corridorAt(floor: FloorId, x: number, y: number): CorridorDef | 
   return null;
 }
 
-export function isWalkable(floor: FloorId, x: number, y: number, pad = 0.28): boolean {
-  for (const b of BLOCKERS) {
-    if (circleHits(x, y, pad, b)) return false;
-  }
-  for (const w of wallsOn(floor)) {
-    if (circleHits(x, y, pad, w)) return false;
-  }
+export function solidsOn(floor: FloorId): Rect[] {
+  return BLOCKERS.concat(wallsOn(floor));
+}
+
+export function inVolume(floor: FloorId, x: number, y: number): boolean {
   for (const r of roomsOn(floor)) {
-    if (contains(r, x, y, Math.min(pad, 0.16))) return true;
+    if (contains(r, x, y, 0)) return true;
   }
   for (const c of corridorsOn(floor)) {
-    if (contains(c, x, y, 0.04)) return true;
+    if (contains(c, x, y, 0)) return true;
   }
   for (const p of portalsOn(floor)) {
-    if (contains(p, x, y, 0.02)) return true;
+    if (contains(p, x, y, 0)) return true;
   }
   if (floor === "R") {
     const inCourt = x > -18 && x < 18 && y > -14 && y < 14;
@@ -392,6 +390,18 @@ export function isWalkable(floor: FloorId, x: number, y: number, pad = 0.28): bo
     return inDeck && !inCourt;
   }
   return false;
+}
+
+export function hitsSolid(floor: FloorId, x: number, y: number, rad: number): boolean {
+  for (const s of solidsOn(floor)) {
+    if (circleHits(x, y, rad, s)) return true;
+  }
+  return false;
+}
+
+export function isWalkable(floor: FloorId, x: number, y: number, pad = 0.28): boolean {
+  if (hitsSolid(floor, x, y, pad)) return false;
+  return inVolume(floor, x, y);
 }
 
 export function cx(r: Rect): number {
