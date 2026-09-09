@@ -4,7 +4,6 @@ import {
   KIND_COLOR,
   KIND_LABEL,
   TOWN,
-  TOWN_MAP,
   TOWN_MAP_H,
   TOWN_MAP_W,
   locById,
@@ -12,7 +11,8 @@ import {
   type DistrictId,
   type TownLocation,
 } from "@/game/town";
-import { MapBitmap, usePanZoom } from "@/components/usePanZoom";
+import { usePanZoom } from "@/components/usePanZoom";
+import { TownDrawnMap } from "@/components/TownDrawnMap";
 
 type Props = {
   focusId?: number | null;
@@ -191,17 +191,11 @@ export function TownAtlas({
             onPointerUp={map.onPointerUp}
             onPointerCancel={map.onPointerUp}
           >
-            <MapBitmap
-              src={TOWN_MAP}
-              contentW={TOWN_MAP_W}
-              contentH={TOWN_MAP_H}
-              pan={map.pan}
-              scale={map.scale}
-            />
             <div
-              className="pointer-events-none absolute left-0 top-0 origin-top-left touch-none"
+              className="absolute left-0 top-0 origin-top-left touch-none"
               style={map.contentStyle}
             >
+              <TownDrawnMap />
               <svg
                 className="pointer-events-none absolute inset-0"
                 viewBox={`0 0 ${TOWN_MAP_W} ${TOWN_MAP_H}`}

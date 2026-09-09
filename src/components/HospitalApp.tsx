@@ -6,7 +6,8 @@ import { findPassage, locById } from "@/game/town";
 import { SHOTS, type ShotId } from "@/game/shots";
 import type { FloorId, GameMode, GameSnapshot } from "@/game/types";
 import { TownAtlas } from "@/components/TownAtlas";
-import { MapBitmap, usePanZoom } from "@/components/usePanZoom";
+import { FloorDrawnPlan } from "@/components/FloorDrawnPlan";
+import { usePanZoom } from "@/components/usePanZoom";
 import { LookDevDock } from "@/components/LookDevDock";
 
 const emptySnap: GameSnapshot = {
@@ -101,8 +102,6 @@ export function HospitalApp() {
     return r.id.toLowerCase().includes(q) || r.name.toLowerCase().includes(q);
   });
 
-  const planImg = FLOOR_PLAN_IMG[snap.floor];
-
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-bg text-fg">
       <canvas
@@ -137,7 +136,13 @@ export function HospitalApp() {
           <TopBar
             snap={snap}
             onFloor={(f) => engineRef.current?.setFloor(f)}
-            onMode={(m) => engineRef.current?.setMode(m)}
+            onMode={(m) => {
+              if (m === "plan") {
+                setPlanOpen(true);
+                return;
+              }
+              engineRef.current?.setMode(m);
+            }}
             onShot={(id) => engineRef.current?.setShot(id)}
             onCatalog={() => setCatalogOpen((v) => !v)}
             onPlan={() => setPlanOpen(true)}
@@ -177,8 +182,13 @@ export function HospitalApp() {
       {planOpen && snap.mode !== "title" && !townOpen && (
         <PlanSheet
           floor={snap.floor}
-          img={planImg}
-          onClose={() => setPlanOpen(false)}
+          x={snap.x}
+          y={snap.y}
+          yaw={snap.yaw}
+          onClose={() => {
+            setPlanOpen(false);
+            if (engineRef.current?.snapshot().mode === "plan") engineRef.current.setMode("walk");
+          }}
           onFloor={(f) => engineRef.current?.setFloor(f)}
         />
       )}
@@ -500,34 +510,39 @@ function Minimap({
 
 function PlanSheet({
   floor,
-  img,
+  x,
+  y,
+  yaw,
   onClose,
   onFloor,
 }: {
   floor: FloorId;
-  img?: string;
+  x: number;
+  y: number;
+  yaw: number;
   onClose: () => void;
   onFloor: (f: FloorId) => void;
 }) {
-  const [nat, setNat] = useState({ w: 1500, h: 750 });
+  const PLAN_W = 1400;
+  const PLAN_H = 1050;
   const map = usePanZoom({
-    contentW: nat.w,
-    contentH: nat.h,
+    contentW: PLAN_W,
+    contentH: PLAN_H,
     minZoom: 0.9,
-    maxZoom: 16,
+    maxZoom: 18,
     initialZoom: 1,
   });
   const fitted = useRef(false);
 
   useEffect(() => {
     fitted.current = false;
-  }, [img, floor, nat.w, nat.h]);
+  }, [floor]);
 
   useEffect(() => {
     if (fitted.current || map.view.w < 40) return;
     fitted.current = true;
     map.centerNorm(0.5, 0.5, 1);
-  }, [map.view.w, map.view.h, nat.w, nat.h, map]);
+  }, [map.view.w, map.view.h, map]);
 
   return (
     <div className="absolute inset-0 z-30 flex flex-col bg-bg">
@@ -555,39 +570,19 @@ function PlanSheet({
         ))}
       </div>
       <div className="relative min-h-0 flex-1">
-        {img ? (
-          <div
-            ref={map.ref}
-            className="absolute inset-0 cursor-grab touch-none overflow-hidden overscroll-none active:cursor-grabbing"
-            onPointerDown={map.onPointerDown}
-            onPointerMove={map.onPointerMove}
-            onPointerUp={map.onPointerUp}
-            onPointerCancel={map.onPointerUp}
-          >
-            <img
-              src={img}
-              alt=""
-              className="hidden"
-              onLoad={(e) => {
-                const im = e.currentTarget;
-                if (im.naturalWidth > 0) {
-                  const k = im.naturalWidth > 2200 ? im.naturalWidth / 1500 : 1;
-                  setNat({ w: im.naturalWidth / k, h: im.naturalHeight / k });
-                }
-              }}
-            />
-            <MapBitmap
-              src={img}
-              contentW={nat.w}
-              contentH={nat.h}
-              pan={map.pan}
-              scale={map.scale}
-            />
+        <div
+          ref={map.ref}
+          className="absolute inset-0 cursor-grab touch-none overflow-hidden overscroll-none active:cursor-grabbing"
+          onPointerDown={map.onPointerDown}
+          onPointerMove={map.onPointerMove}
+          onPointerUp={map.onPointerUp}
+          onPointerCancel={map.onPointerUp}
+        >
+          <div className="absolute left-0 top-0 origin-top-left" style={map.contentStyle}>
+            <FloorDrawnPlan floor={floor} marker={{ x, y, yaw }} />
           </div>
-        ) : (
-          <p className="p-6 text-sm text-muted">Для этого этажа чертёж ещё не подключён.</p>
-        )}
-        {img && <ZoomHud zoom={map.zoom} onMinus={() => map.bump(0.82)} onPlus={() => map.bump(1.22)} />}
+        </div>
+        <ZoomHud zoom={map.zoom} onMinus={() => map.bump(0.82)} onPlus={() => map.bump(1.22)} />
       </div>
     </div>
   );

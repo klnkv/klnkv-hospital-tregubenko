@@ -331,26 +331,22 @@ export function MapBitmap({
   viewW?: number;
   viewH?: number;
 }) {
-  const [nat, setNat] = useState({ w: contentW, h: contentH });
-
-  const sx = scale * (contentW / Math.max(1, nat.w));
-
   return (
     <img
       src={src}
       alt=""
       draggable={false}
-      onLoad={(e) => {
-        const im = e.currentTarget;
-        if (im.naturalWidth > 0) setNat({ w: im.naturalWidth, h: im.naturalHeight });
-      }}
       className="pointer-events-none absolute left-0 top-0 max-w-none origin-top-left touch-none select-none"
       style={{
-        width: nat.w,
-        height: nat.h,
-        transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${sx})`,
+        width: contentW,
+        height: contentH,
+        maxWidth: "none",
+        maxHeight: "none",
+        transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${scale})`,
+        transformOrigin: "0 0",
         willChange: "transform",
         WebkitUserSelect: "none",
+        objectFit: "fill",
       }}
     />
   );
