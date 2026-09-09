@@ -6,7 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 /** Static SPA for GitHub Pages (free). Does not touch the Vercel/Nitro pipeline. */
 export default defineConfig({
   root: fileURLToPath(new URL("./pages-entry", import.meta.url)),
-  base: "/klnkv-hospital-tregubenko/",
+  base: "/",
   publicDir: fileURLToPath(new URL("./public", import.meta.url)),
   plugins: [tailwindcss(), viteReact()],
   resolve: {

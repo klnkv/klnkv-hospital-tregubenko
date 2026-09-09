@@ -16,19 +16,13 @@ cameras, interiors and the town atlas before the Unreal port.
 
 Look-dev ходит по сборке, а не по репозиторию. Инструкция: [LOOKDEV.md](./LOOKDEV.md).
 
-## Ссылка для прогулки (бесплатно)
+## Ссылка для прогулки
 
-Не Vercel. Не отдельный аккаунт. Не карта.
+Жена / look-dev ходит по этой ссылке с iPad (Safari). Это GitHub Pages вашего аккаунта, без сторонних сервисов:
 
-Прогулка публикуется **GitHub Pages** с этого же репозитория (бесплатно для
-публичного кода):
+**https://klnkv.github.io/**
 
-**https://klnkv.github.io/klnkv-hospital-tregubenko/**
-
-Эту ссылку и отправляй look-dev. После пуша в `main` страница сама обновится.
-
-KPI/проценты готовности — внутренняя таблица в [STATUS.md](./STATUS.md), не
-сервис и не подписка.
+После обновления макета ссылка та же. KPI/проценты — таблица в [STATUS.md](./STATUS.md), не продукт.
 
 ## Run locally
 
