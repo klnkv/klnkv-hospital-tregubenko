@@ -2,6 +2,7 @@ import { FLOOR_LABEL, MAIN_D, MAIN_W, TYPE_COLOR } from "@/game/constants";
 import { corridorsOn, roomsOn } from "@/game/layout";
 import { PASSAGES } from "@/game/town";
 import type { FloorId, RoomDef } from "@/game/types";
+import { fullVis, type LayerVis } from "@/components/LayerStrip";
 
 const PAD = 8;
 const VB_W = MAIN_W + PAD * 2;
@@ -17,13 +18,9 @@ export const FLOOR_LAYER_ITEMS: { id: FloorLayer; label: string }[] = [
   { id: "doors", label: "Скрытые" },
 ];
 
-export const FLOOR_LAYERS_ON: Record<FloorLayer, boolean> = {
-  rooms: true,
-  corridors: true,
-  core: true,
-  labels: true,
-  doors: true,
-};
+export const FLOOR_LAYER_VIS: Record<FloorLayer, LayerVis> = fullVis(
+  FLOOR_LAYER_ITEMS.map((l) => l.id),
+);
 
 function sx(x: number) {
   return x + MAIN_W / 2 + PAD;
@@ -35,11 +32,11 @@ function sy(y: number) {
 export function FloorDrawnPlan({
   floor,
   marker,
-  layers = FLOOR_LAYERS_ON,
+  layers = FLOOR_LAYER_VIS,
 }: {
   floor: FloorId;
   marker?: { x: number; y: number; yaw: number };
-  layers?: Record<FloorLayer, boolean>;
+  layers?: Record<FloorLayer, LayerVis>;
 }) {
   const rooms = roomsOn(floor);
   const corridors = corridorsOn(floor);
@@ -69,8 +66,9 @@ export function FloorDrawnPlan({
       />
       <rect x={sx(-18)} y={sy(14)} width={36} height={28} fill="#1c2418" stroke="#2a2d28" strokeWidth="0.2" />
 
-      {layers.corridors &&
-        corridors.map((c) => (
+      {layers.corridors.on && (
+        <g opacity={layers.corridors.opacity}>
+        {corridors.map((c) => (
           <rect
             key={c.id}
             x={sx(c.x0)}
@@ -83,13 +81,22 @@ export function FloorDrawnPlan({
             strokeWidth="0.18"
           />
         ))}
+        </g>
+      )}
 
-      {layers.rooms && rest.map((r) => <RoomGlyph key={r.id} r={r} floor={floor} labels={layers.labels} />)}
+      {layers.rooms.on && (
+        <g opacity={layers.rooms.opacity}>
+          {rest.map((r) => (
+            <RoomGlyph key={r.id} r={r} floor={floor} labels={layers.labels.on} />
+          ))}
+        </g>
+      )}
 
-      {layers.core &&
-        core.map((r) => (
+      {layers.core.on && (
+        <g opacity={layers.core.opacity}>
+        {core.map((r) => (
           <g key={r.id}>
-            <RoomGlyph r={r} floor={floor} labels={layers.labels} />
+            <RoomGlyph r={r} floor={floor} labels={layers.labels.on} />
             <text
               x={sx((r.x0 + r.x1) / 2)}
               y={sy((r.y0 + r.y1) / 2) + 1.6}
@@ -102,9 +109,12 @@ export function FloorDrawnPlan({
             </text>
           </g>
         ))}
+        </g>
+      )}
 
-      {layers.doors &&
-        doorRooms.map((r) => (
+      {layers.doors.on && (
+        <g opacity={layers.doors.opacity}>
+        {doorRooms.map((r) => (
           <rect
             key={`door-${r.id}`}
             x={sx(r.x0)}
@@ -117,8 +127,7 @@ export function FloorDrawnPlan({
             strokeDasharray="0.7 0.5"
           />
         ))}
-      {layers.doors &&
-        roofDoor.map((p, i) => (
+        {roofDoor.map((p, i) => (
           <circle
             key={`roof-${i}`}
             cx={sx(p.hx!)}
@@ -130,6 +139,8 @@ export function FloorDrawnPlan({
             strokeDasharray="0.8 0.5"
           />
         ))}
+        </g>
+      )}
 
       {marker && (
         <g transform={`translate(${sx(marker.x)},${sy(marker.y)}) rotate(${(-marker.yaw * 180) / Math.PI})`}>

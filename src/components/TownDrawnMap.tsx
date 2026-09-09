@@ -1,4 +1,5 @@
 import { KIND_COLOR, PASSAGES, TOWN, TOWN_MAP_H, TOWN_MAP_W, locById, type TownLocation } from "@/game/town";
+import { fullVis, type LayerVis } from "@/components/LayerStrip";
 
 const RIVER = "M680 0 C690 50 712 78 704 118 C738 186 808 214 828 268 C858 348 808 398 758 432 C792 508 858 558 834 628 C812 708 824 768 798 824 C752 888 698 946 638 1000";
 const RIVER_BANK = "M640 -10 C650 50 672 78 664 118 C698 186 768 214 788 268 C818 348 768 398 718 432 C752 508 818 558 794 628 C772 708 784 768 758 824 C712 888 658 946 598 1010 L678 1010 C738 946 792 888 838 824 C864 768 852 708 874 628 C898 558 832 508 798 432 C848 398 898 348 868 268 C848 214 778 186 744 118 C752 78 730 50 720 -10 Z";
@@ -15,17 +16,11 @@ export const TOWN_LAYER_ITEMS: { id: TownLayer; label: string }[] = [
   { id: "hidden", label: "Скрытые" },
 ];
 
-export const TOWN_LAYERS_ON: Record<TownLayer, boolean> = {
-  districts: true,
-  river: true,
-  roads: true,
-  rail: true,
-  links: true,
-  sites: true,
-  hidden: true,
-};
+export const TOWN_LAYER_VIS: Record<TownLayer, LayerVis> = fullVis(
+  TOWN_LAYER_ITEMS.map((l) => l.id),
+);
 
-export function TownDrawnMap({ layers = TOWN_LAYERS_ON }: { layers?: Record<TownLayer, boolean> }) {
+export function TownDrawnMap({ layers = TOWN_LAYER_VIS }: { layers?: Record<TownLayer, LayerVis> }) {
   const hospital = locById(1);
 
   return (
@@ -52,8 +47,8 @@ export function TownDrawnMap({ layers = TOWN_LAYERS_ON }: { layers?: Record<Town
       <rect width={TOWN_MAP_W} height={TOWN_MAP_H} fill="url(#paper)" />
       <rect width={TOWN_MAP_W} height={TOWN_MAP_H} fill="url(#hatch)" opacity="0.35" />
 
-      {layers.districts && (
-        <g>
+      {layers.districts.on && (
+        <g opacity={layers.districts.opacity}>
           <ellipse cx="510" cy="220" rx="210" ry="150" fill="#3a3e42" opacity="0.45" />
           <ellipse cx="400" cy="500" rx="200" ry="170" fill="#2c382c" opacity="0.4" />
           <ellipse cx="680" cy="440" rx="160" ry="130" fill="#3a4034" opacity="0.55" />
@@ -86,8 +81,8 @@ export function TownDrawnMap({ layers = TOWN_LAYERS_ON }: { layers?: Record<Town
         </g>
       )}
 
-      {layers.rail && (
-        <g>
+      {layers.rail.on && (
+        <g opacity={layers.rail.opacity}>
           <path d="M248 20 L268 380 L318 640 L292 980" fill="none" stroke="#8b8f84" strokeWidth="5" />
           <path
             d="M248 20 L268 380 L318 640 L292 980"
@@ -99,8 +94,8 @@ export function TownDrawnMap({ layers = TOWN_LAYERS_ON }: { layers?: Record<Town
         </g>
       )}
 
-      {layers.roads && (
-        <g>
+      {layers.roads.on && (
+        <g opacity={layers.roads.opacity}>
           <path
             d="M180 430 L1320 430 M684 40 L684 960 M400 640 L1100 760 M520 200 L1100 200"
             fill="none"
@@ -108,7 +103,7 @@ export function TownDrawnMap({ layers = TOWN_LAYERS_ON }: { layers?: Record<Town
             strokeWidth="3.2"
             opacity="0.28"
           />
-          {layers.river && (
+          {layers.river.on && (
             <>
               <rect x="668" y="78" width="74" height="18" rx="2" fill="#8a7a62" />
               <rect x="762" y="790" width="78" height="18" rx="2" fill="#8a7a62" />
@@ -117,8 +112,9 @@ export function TownDrawnMap({ layers = TOWN_LAYERS_ON }: { layers?: Record<Town
         </g>
       )}
 
-      {layers.links &&
-        TOWN.filter((l) => !l.hidden).map((l) =>
+      {layers.links.on && (
+        <g opacity={layers.links.opacity}>
+        {TOWN.filter((l) => !l.hidden).map((l) =>
           l.links.slice(0, 3).map((id) => {
             const o = locById(id);
             if (!o) return null;
@@ -136,17 +132,19 @@ export function TownDrawnMap({ layers = TOWN_LAYERS_ON }: { layers?: Record<Town
             );
           }),
         )}
+        </g>
+      )}
 
-      {layers.river && (
-        <g>
+      {layers.river.on && (
+        <g opacity={layers.river.opacity}>
           <path d={RIVER_BANK} fill="#1a3a42" opacity="0.95" filter="url(#soft)" />
           <path d={RIVER} fill="none" stroke="#3f5c68" strokeWidth="28" strokeLinecap="round" />
           <path d={RIVER} fill="none" stroke="#7aa0aa" strokeWidth="6" opacity="0.35" />
         </g>
       )}
 
-      {layers.sites && (
-        <g>
+      {layers.sites.on && (
+        <g opacity={layers.sites.opacity}>
           <rect x="662" y="396" width="44" height="34" fill="#9aaa90" stroke="#e6e2d6" strokeWidth="1.4" />
           <rect x="672" y="404" width="16" height="12" fill="#141613" opacity="0.5" />
           {TOWN.flatMap((l) => {
@@ -158,8 +156,9 @@ export function TownDrawnMap({ layers = TOWN_LAYERS_ON }: { layers?: Record<Town
         </g>
       )}
 
-      {layers.hidden && hospital &&
-        PASSAGES.map((p) => {
+      {layers.hidden.on && hospital && (
+        <g opacity={layers.hidden.opacity}>
+        {PASSAGES.map((p) => {
           const o = locById(p.townId);
           if (!o || o.id === 1) return null;
           return (
@@ -176,6 +175,8 @@ export function TownDrawnMap({ layers = TOWN_LAYERS_ON }: { layers?: Record<Town
             />
           );
         })}
+        </g>
+      )}
 
       <text x="80" y="56" fill="#9aaa90" fontFamily="IBM Plex Sans, sans-serif" fontSize="13" letterSpacing="4">
         LAST RESORT TOWN

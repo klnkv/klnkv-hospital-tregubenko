@@ -12,8 +12,8 @@ import {
   type TownLocation,
 } from "@/game/town";
 import { usePanZoom } from "@/components/usePanZoom";
-import { TOWN_LAYERS_ON, TOWN_LAYER_ITEMS, TownDrawnMap, type TownLayer } from "@/components/TownDrawnMap";
-import { LayerStrip, toggleLayer } from "@/components/LayerStrip";
+import { TOWN_LAYER_VIS, TOWN_LAYER_ITEMS, TownDrawnMap } from "@/components/TownDrawnMap";
+import { LayerVisibility, useLayerVis } from "@/components/LayerStrip";
 
 type Props = {
   focusId?: number | null;
@@ -60,7 +60,8 @@ export function TownAtlas({
   const [district, setDistrict] = useState<DistrictId | "ALL">("ALL");
   const [listOpen, setListOpen] = useState(false);
   const [ready, setReady] = useState(false);
-  const [layers, setLayers] = useState(TOWN_LAYERS_ON);
+  const vis = useLayerVis("h6-layers-town", TOWN_LAYER_VIS);
+  const layers = vis.layers;
 
   const loc = locById(sel) ?? TOWN[0]!;
   const passages = passagesForTown(loc.id);
@@ -198,7 +199,7 @@ export function TownAtlas({
               style={map.contentStyle}
             >
               <TownDrawnMap layers={layers} />
-              {layers.links && (
+              {layers.links.on && (
               <svg
                 className="pointer-events-none absolute inset-0"
                 viewBox={`0 0 ${TOWN_MAP_W} ${TOWN_MAP_H}`}
@@ -223,9 +224,9 @@ export function TownAtlas({
               </svg>
               )}
             </div>
-            {layers.sites && (
-            <div className="pointer-events-none absolute inset-0 touch-none">
-              {TOWN.filter((l) => layers.hidden || !l.hidden).flatMap((l) => {
+            {layers.sites.on && (
+            <div className="pointer-events-none absolute inset-0 touch-none" style={{ opacity: layers.sites.opacity }}>
+              {TOWN.filter((l) => layers.hidden.on || !l.hidden).flatMap((l) => {
                 const pts = [
                   { x: l.x, y: l.y, primary: true },
                   ...(l.sites ?? []).map((site) => ({ ...site, primary: false })),
@@ -247,11 +248,7 @@ export function TownAtlas({
               })}
             </div>
             )}
-            <LayerStrip
-              layers={TOWN_LAYER_ITEMS}
-              active={layers}
-              onToggle={(id: TownLayer) => setLayers((p) => toggleLayer(p, id))}
-            />
+            <LayerVisibility items={TOWN_LAYER_ITEMS} vis={vis} />
             <div className="pointer-events-none absolute bottom-3 right-3 z-10 flex items-center gap-1">
               <p className="mr-1 rounded-sm border border-border bg-bg/80 px-2 py-1 font-mono text-[10px] text-muted">
                 щипок · {map.zoom.toFixed(1)}×

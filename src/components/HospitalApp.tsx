@@ -6,8 +6,8 @@ import { findPassage, locById } from "@/game/town";
 import { SHOTS, type ShotId } from "@/game/shots";
 import type { FloorId, GameMode, GameSnapshot } from "@/game/types";
 import { TownAtlas } from "@/components/TownAtlas";
-import { FloorDrawnPlan, FLOOR_LAYER_ITEMS, FLOOR_LAYERS_ON, type FloorLayer } from "@/components/FloorDrawnPlan";
-import { LayerStrip, toggleLayer } from "@/components/LayerStrip";
+import { FloorDrawnPlan, FLOOR_LAYER_ITEMS, FLOOR_LAYER_VIS } from "@/components/FloorDrawnPlan";
+import { LayerVisibility, useLayerVis } from "@/components/LayerStrip";
 import { usePanZoom } from "@/components/usePanZoom";
 import { LookDevDock } from "@/components/LookDevDock";
 
@@ -534,7 +534,8 @@ function PlanSheet({
     initialZoom: 1,
   });
   const fitted = useRef(false);
-  const [layers, setLayers] = useState(FLOOR_LAYERS_ON);
+  const vis = useLayerVis("h6-layers-floor", FLOOR_LAYER_VIS);
+  const layers = vis.layers;
 
   useEffect(() => {
     fitted.current = false;
@@ -584,11 +585,7 @@ function PlanSheet({
             <FloorDrawnPlan floor={floor} marker={{ x, y, yaw }} layers={layers} />
           </div>
         </div>
-        <LayerStrip
-          layers={FLOOR_LAYER_ITEMS}
-          active={layers}
-          onToggle={(id: FloorLayer) => setLayers((p) => toggleLayer(p, id))}
-        />
+        <LayerVisibility items={FLOOR_LAYER_ITEMS} vis={vis} />
         <ZoomHud zoom={map.zoom} onMinus={() => map.bump(0.82)} onPlus={() => map.bump(1.22)} />
       </div>
     </div>
