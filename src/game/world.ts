@@ -584,15 +584,15 @@ export function createWorld(): WorldHandle {
     plaster: new Instancer(box, plasterIn, 700, interior),
     plasterNew: new Instancer(box, plasterNew, 400, interior),
     wood: new Instancer(box, woodM, 700, interior),
-    walnut: new Instancer(box, walnutM, 120, interior),
+    walnut: new Instancer(box, walnutM, 240, interior),
     metal: new Instancer(box, metalM, 700, interior),
     linen: new Instancer(box, linen, 280, interior),
     cloth: new Instancer(box, clothM, 40, interior),
     napkin: new Instancer(box, napkinM, 24, interior),
-    velvet: new Instancer(box, velvetM, 80, interior),
+    velvet: new Instancer(box, velvetM, 100, interior),
     rug: new Instancer(box, rugM, 4, interior),
     china: new Instancer(box, chinaM, 80, interior),
-    brass: new Instancer(box, brassM, 60, interior),
+    brass: new Instancer(box, brassM, 80, interior),
     silver: new Instancer(box, silverM, 80, interior),
     copper: new Instancer(box, copperM, 80, interior),
     tomato: new Instancer(box, tomatoM, 8, interior),
@@ -627,6 +627,14 @@ export function createWorld(): WorldHandle {
   const kitchenPlaque = mesh(box, kitchenSignM, 0, -24, 0, 2.1, 0.3, 0.04, interior);
   diningPlaque.visible = false;
   kitchenPlaque.visible = false;
+
+  const diningLight = new THREE.PointLight(0xffe2b8, 22, 16, 1.6);
+  diningLight.visible = false;
+  diningLight.castShadow = false;
+  interior.add(diningLight);
+  const diningFill = new THREE.PointLight(0xf3d7a0, 8, 12, 1.8);
+  diningFill.visible = false;
+  interior.add(diningFill);
 
   const chefG = new THREE.Group();
   chefG.name = "chef";
@@ -874,15 +882,67 @@ export function createWorld(): WorldHandle {
   }
 
   function furnishDining(add: AddFn, w: number, d: number, y: number, mx: number, mz: number) {
-    const nWall = -d / 2 + 0.42;
-    const eWall = w / 2 - 0.38;
-    const wWall = -w / 2 + 0.16;
+    const nWall = -d / 2 + 0.18;
+    const sWall = d / 2 - 0.18;
+    const eWall = w / 2 - 0.18;
+    const wWall = -w / 2 + 0.18;
+    const h = 3.36;
 
-    add(B.walnut, 0, 0.52, nWall + 0.12, w - 0.5, 1.02, 0.08);
-    add(B.walnut, eWall - 0.12, 0.52, 0.2, 0.08, 1.02, d - 1.4);
-    add(B.walnut, wWall + 0.12, 0.52, 0.2, 0.08, 1.02, d - 1.8);
+    add(B.plaster, 0, h * 0.5, nWall, w - 0.08, h, 0.06);
+    add(B.plaster, 0, h * 0.5, sWall, w - 0.08, h, 0.06);
+    add(B.plaster, eWall, h * 0.5, 0, 0.06, h, d - 0.08);
+    add(B.plaster, wWall, h * 0.5, 0, 0.06, h, d - 0.08);
 
-    add(B.rug, 0, 0.03, 0.2, 4.6, 0.02, 3.6);
+    add(B.walnut, 0, 0.58, nWall + 0.04, w - 0.2, 1.16, 0.08);
+    add(B.walnut, eWall - 0.04, 0.58, 0, 0.08, 1.16, d - 0.35);
+    add(B.walnut, wWall + 0.04, 0.58, 0, 0.08, 1.16, d - 0.35);
+    add(B.walnut, -2.2, 0.58, sWall - 0.04, 6.2, 1.16, 0.08);
+    add(B.walnut, 2.2, 0.58, sWall - 0.04, 6.2, 1.16, 0.08);
+
+    add(B.walnut, 0, 0.06, nWall + 0.05, w - 0.15, 0.12, 0.1);
+    add(B.walnut, 0, 0.06, sWall - 0.05, w - 0.15, 0.12, 0.1);
+    add(B.walnut, eWall - 0.05, 0.06, 0, 0.1, 0.12, d - 0.2);
+    add(B.walnut, wWall + 0.05, 0.06, 0, 0.1, 0.12, d - 0.2);
+
+    add(B.walnut, 0, h - 0.08, nWall + 0.06, w - 0.2, 0.1, 0.16);
+    add(B.walnut, 0, h - 0.08, sWall - 0.06, w - 0.2, 0.1, 0.16);
+    add(B.walnut, eWall - 0.06, h - 0.08, 0, 0.16, 0.1, d - 0.25);
+    add(B.walnut, wWall + 0.06, h - 0.08, 0, 0.16, 0.1, d - 0.25);
+
+    add(B.plaster, 0, h - 0.12, 0, w - 1.2, 0.04, d - 1.2);
+    add(B.walnut, 0, h - 0.16, nWall + 0.7, w - 1.6, 0.05, 0.08);
+    add(B.walnut, 0, h - 0.16, sWall - 0.7, w - 1.6, 0.05, 0.08);
+    add(B.walnut, eWall - 0.7, h - 0.16, 0, 0.08, 0.05, d - 1.6);
+    add(B.walnut, wWall + 0.7, h - 0.16, 0, 0.08, 0.05, d - 1.6);
+    add(B.light, 0, h - 0.2, nWall + 0.55, w - 2.2, 0.03, 0.06);
+    add(B.light, 0, h - 0.2, sWall - 0.55, w - 2.2, 0.03, 0.06);
+    add(B.light, eWall - 0.55, h - 0.2, 0, 0.06, 0.03, d - 2.2);
+    add(B.light, wWall + 0.55, h - 0.2, 0, 0.06, 0.03, d - 2.2);
+
+    add(B.walnut, -0.82, 1.1, sWall, 0.08, 2.2, 0.1);
+    add(B.walnut, 0.82, 1.1, sWall, 0.08, 2.2, 0.1);
+    add(B.walnut, 0, 2.24, sWall, 1.72, 0.08, 0.1);
+    add(B.walnut, -0.4, 1.1, sWall + 0.04, 0.76, 2.18, 0.06);
+    add(B.walnut, 0.4, 1.1, sWall + 0.04, 0.76, 2.18, 0.06);
+    add(B.brass, -0.12, 1.12, sWall + 0.08, 0.04, 0.04, 0.04);
+    add(B.brass, 0.12, 1.12, sWall + 0.08, 0.04, 0.04, 0.04);
+
+    const winZ = [1.45, -1.85];
+    for (const dz of winZ) {
+      add(B.walnut, wWall + 0.06, 1.55, dz, 0.1, 2.2, 1.7);
+      add(B.velvet, wWall + 0.12, 1.58, dz, 0.08, 2.14, 1.62);
+      add(B.walnut, wWall + 0.1, 2.66, dz, 0.12, 0.08, 1.74);
+      add(B.walnut, wWall + 0.1, 0.48, dz, 0.12, 0.08, 1.74);
+      add(B.brass, wWall + 0.16, 1.55, dz + 0.7, 0.04, 0.04, 0.04);
+    }
+    add(B.velvet, wWall + 0.14, 1.7, -0.2, 0.06, 2.4, 5.6);
+
+    add(B.walnut, wWall + 0.28, 1.15, -3.6, 0.48, 2.3, 1.15);
+    add(B.walnut, wWall + 0.28, 1.15, 3.4, 0.48, 2.3, 1.15);
+    add(B.china, wWall + 0.4, 2.05, -3.6, 0.22, 0.12, 0.22);
+    add(B.dark, wWall + 0.42, 1.7, 3.4, 0.06, 0.9, 0.7);
+
+    add(B.rug, 0, 0.03, 0.15, 5.4, 0.02, 4.2);
 
     add(B.walnut, 0, 0.36, 0.28, 2.85, 0.7, 1.22);
     add(B.walnut, 0, 0.74, 0.28, 3.05, 0.07, 1.38);
@@ -919,53 +979,60 @@ export function createWorld(): WorldHandle {
     B.cylChina.add(mx + 0.48, y + 0.9, mz + 0.42, 0.045, 0.05, 0.045);
     add(B.silver, 0.48, 0.94, 0.42, 0.08, 0.01, 0.08);
 
-    add(B.walnut, 0, 0.52, nWall, 8.5, 1.04, 0.52);
-    add(B.walnut, 0, 1.08, nWall, 8.6, 0.08, 0.58);
-    add(B.walnut, 0, 1.72, nWall - 0.08, 8.3, 1.05, 0.22);
-    add(B.walnut, -2.6, 1.08, nWall, 0.06, 1.12, 0.5);
-    add(B.walnut, 2.6, 1.08, nWall, 0.06, 1.12, 0.5);
-    B.cylSilver.add(mx, y + 1.48, mz + nWall + 0.02, 0.16, 0.42, 0.16);
-    B.cylSilver.add(mx, y + 1.72, mz + nWall + 0.02, 0.12, 0.1, 0.12);
-    add(B.silver, 0.18, 1.38, nWall + 0.18, 0.12, 0.04, 0.04);
-    for (const dx of [-3.4, -3.05, -2.7, 2.55, 2.9, 3.25]) {
-      B.cylDark.add(mx + dx, y + 1.32, mz + nWall + 0.02, 0.045, 0.32, 0.045);
+    add(B.walnut, 0, 0.52, nWall + 0.28, 10.4, 1.04, 0.52);
+    add(B.walnut, 0, 1.08, nWall + 0.28, 10.5, 0.08, 0.58);
+    add(B.walnut, 0, 1.78, nWall + 0.18, 10.2, 1.22, 0.28);
+    add(B.walnut, -3.4, 1.08, nWall + 0.28, 0.06, 1.12, 0.5);
+    add(B.walnut, 3.4, 1.08, nWall + 0.28, 0.06, 1.12, 0.5);
+    B.cylSilver.add(mx, y + 1.48, mz + nWall + 0.32, 0.16, 0.42, 0.16);
+    B.cylSilver.add(mx, y + 1.72, mz + nWall + 0.32, 0.12, 0.1, 0.12);
+    add(B.silver, 0.18, 1.38, nWall + 0.42, 0.12, 0.04, 0.04);
+    for (const dx of [-4.4, -4.05, -3.7, 3.55, 3.9, 4.25]) {
+      B.cylDark.add(mx + dx, y + 1.32, mz + nWall + 0.32, 0.045, 0.32, 0.045);
     }
-    add(B.china, -1.35, 1.2, nWall + 0.05, 0.3, 0.16, 0.3);
-    add(B.china, 1.35, 1.2, nWall + 0.05, 0.3, 0.16, 0.3);
-    add(B.china, -1.35, 1.3, nWall + 0.05, 0.22, 0.06, 0.22);
-    add(B.crystal, 3.9, 1.42, nWall + 0.08, 0.22, 0.55, 0.12);
+    add(B.china, -1.6, 1.2, nWall + 0.32, 0.3, 0.16, 0.3);
+    add(B.china, 1.6, 1.2, nWall + 0.32, 0.3, 0.16, 0.3);
+    add(B.china, -1.6, 1.3, nWall + 0.32, 0.22, 0.06, 0.22);
+    add(B.crystal, 4.6, 1.48, nWall + 0.32, 0.22, 0.55, 0.12);
 
-    add(B.walnut, eWall, 0.46, 0.35, 0.5, 0.92, 2.55);
-    add(B.walnut, eWall, 0.94, 0.35, 0.54, 0.06, 2.6);
-    add(B.walnut, eWall, 1.7, 0.35, 0.48, 1.5, 0.2);
-    add(B.china, eWall - 0.02, 1.55, -0.5, 0.28, 0.2, 0.28);
-    add(B.china, eWall - 0.02, 1.7, -0.5, 0.22, 0.08, 0.22);
-    add(B.napkin, eWall - 0.02, 0.98, -0.35, 0.36, 0.02, 0.36);
-    add(B.napkin, eWall - 0.02, 0.98, 0.35, 0.36, 0.02, 0.36);
-    add(B.napkin, eWall - 0.02, 0.98, 1.05, 0.36, 0.02, 0.36);
-    B.cylSilver.add(mx + eWall - 0.02, y + 1.12, mz - 0.35, 0.16, 0.22, 0.16);
-    B.cylSilver.add(mx + eWall - 0.02, y + 1.12, mz + 0.35, 0.16, 0.22, 0.16);
-    B.cylSilver.add(mx + eWall - 0.02, y + 1.12, mz + 1.05, 0.16, 0.22, 0.16);
-    add(B.silver, eWall - 0.02, 1.24, -0.35, 0.04, 0.06, 0.04);
-    add(B.silver, eWall - 0.02, 1.24, 0.35, 0.04, 0.06, 0.04);
-    add(B.silver, eWall - 0.02, 1.24, 1.05, 0.04, 0.06, 0.04);
-    add(B.china, eWall - 0.02, 1.0, -1.0, 0.28, 0.04, 0.28);
+    add(B.walnut, eWall - 0.12, 0.46, 0.35, 0.52, 0.92, 2.7);
+    add(B.walnut, eWall - 0.12, 0.94, 0.35, 0.56, 0.06, 2.76);
+    add(B.walnut, eWall - 0.12, 1.72, 0.35, 0.48, 1.4, 0.22);
+    add(B.china, eWall - 0.16, 1.55, -0.5, 0.28, 0.2, 0.28);
+    add(B.china, eWall - 0.16, 1.7, -0.5, 0.22, 0.08, 0.22);
+    add(B.napkin, eWall - 0.16, 0.98, -0.35, 0.36, 0.02, 0.36);
+    add(B.napkin, eWall - 0.16, 0.98, 0.35, 0.36, 0.02, 0.36);
+    add(B.napkin, eWall - 0.16, 0.98, 1.05, 0.36, 0.02, 0.36);
+    B.cylSilver.add(mx + eWall - 0.16, y + 1.12, mz - 0.35, 0.16, 0.22, 0.16);
+    B.cylSilver.add(mx + eWall - 0.16, y + 1.12, mz + 0.35, 0.16, 0.22, 0.16);
+    B.cylSilver.add(mx + eWall - 0.16, y + 1.12, mz + 1.05, 0.16, 0.22, 0.16);
+    add(B.silver, eWall - 0.16, 1.24, -0.35, 0.04, 0.06, 0.04);
+    add(B.silver, eWall - 0.16, 1.24, 0.35, 0.04, 0.06, 0.04);
+    add(B.silver, eWall - 0.16, 1.24, 1.05, 0.04, 0.06, 0.04);
+    add(B.china, eWall - 0.16, 1.0, -1.0, 0.28, 0.04, 0.28);
 
-    add(B.velvet, wWall, 1.7, 0, 0.1, 2.4, d - 0.8);
-    add(B.walnut, wWall, 2.92, 0, 0.1, 0.08, d - 0.7);
-    add(B.walnut, wWall + 0.08, 1.15, -2.2, 0.42, 2.3, 0.9);
-    add(B.walnut, wWall + 0.08, 1.15, 2.4, 0.42, 2.3, 0.9);
-    add(B.china, wWall + 0.22, 1.55, -2.2, 0.22, 0.14, 0.22);
-    add(B.dark, wWall + 0.28, 1.7, 2.4, 0.06, 0.9, 0.7);
+    add(B.brass, -4.8, 2.15, nWall + 0.12, 0.08, 0.28, 0.08);
+    add(B.light, -4.8, 2.0, nWall + 0.14, 0.12, 0.08, 0.12);
+    add(B.brass, 4.8, 2.15, nWall + 0.12, 0.08, 0.28, 0.08);
+    add(B.light, 4.8, 2.0, nWall + 0.14, 0.12, 0.08, 0.12);
+    add(B.brass, eWall - 0.12, 2.15, -2.6, 0.08, 0.28, 0.08);
+    add(B.light, eWall - 0.14, 2.0, -2.6, 0.12, 0.08, 0.12);
+    add(B.brass, eWall - 0.12, 2.15, 2.8, 0.08, 0.28, 0.08);
+    add(B.light, eWall - 0.14, 2.0, 2.8, 0.12, 0.08, 0.12);
 
-    add(B.brass, 0, 2.88, 0.28, 1.55, 0.05, 0.55);
-    add(B.brass, 0, 3.05, 0.28, 0.12, 0.35, 0.12);
-    add(B.light, -0.5, 2.72, 0.28, 0.22, 0.08, 0.22);
-    add(B.light, 0.5, 2.72, 0.28, 0.22, 0.08, 0.22);
-    add(B.light, 0, 2.72, 0.28, 0.18, 0.08, 0.18);
+    add(B.brass, 0, 2.92, 0.28, 1.7, 0.05, 0.6);
+    add(B.brass, 0, 3.1, 0.28, 0.12, 0.32, 0.12);
+    add(B.light, -0.52, 2.76, 0.28, 0.24, 0.08, 0.24);
+    add(B.light, 0.52, 2.76, 0.28, 0.24, 0.08, 0.24);
+    add(B.light, 0, 2.76, 0.28, 0.2, 0.08, 0.2);
+
+    diningLight.visible = true;
+    diningLight.position.set(mx, y + 2.7, mz + 0.28);
+    diningFill.visible = true;
+    diningFill.position.set(mx - 2.2, y + 1.6, mz + 2.4);
 
     diningPlaque.visible = true;
-    diningPlaque.position.set(mx, y + 2.42, mz + nWall - 0.14);
+    diningPlaque.position.set(mx, y + 2.48, mz + nWall + 0.08);
 
     chefG.visible = true;
     chefG.position.set(mx + 0.72, y, mz + 0.92);
@@ -1074,6 +1141,8 @@ export function createWorld(): WorldHandle {
     guestWoman.visible = false;
     guestShort.visible = false;
     guestAnglo.visible = false;
+    diningLight.visible = false;
+    diningFill.visible = false;
     orderlyA.visible = false;
     orderlyB.visible = false;
     nurseG.visible = false;

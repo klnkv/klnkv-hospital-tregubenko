@@ -79,6 +79,7 @@ declare global {
       setFloor: (floor: FloorId) => void;
       setMode: (mode: GameMode) => void;
       setShot?: (id: string) => void;
+      walkable?: (x: number, y: number) => boolean;
     };
   }
 }
