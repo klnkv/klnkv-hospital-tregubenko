@@ -1,6 +1,7 @@
 import type { FloorId } from "./types";
+import { publicUrl } from "./constants";
 
-export const TOWN_MAP = "/maps/town.jpg";
+export const TOWN_MAP = publicUrl("maps/town.jpg");
 export const TOWN_MAP_W = 1500;
 export const TOWN_MAP_H = 1000;
 

@@ -92,13 +92,20 @@ export const TYPE_LABEL: Record<RoomType, string> = {
   CORE: "Лестница / лифт",
 };
 
+/** Public files stay correct on `/` (preview) and on GitHub Pages (`/repo/`). */
+export function publicUrl(path: string): string {
+  const base = import.meta.env.BASE_URL ?? "/";
+  const trimmed = path.replace(/^\//, "");
+  return `${base}${trimmed}`;
+}
+
 export const FLOOR_PLAN_IMG: Partial<Record<FloorId, string>> = {
-  B1: "/maps/F2ACA74B-5834-4A4F-B470-F2A5C29142E1.jpg",
-  F1: "/maps/790362A7-FB6B-4288-9E3C-325BEC229886.jpg",
-  F2: "/maps/EDE2C58D-FA73-47AD-9B2D-E135C1E90820.jpg",
-  F3: "/maps/AB16D0FD-2F27-4BC2-BFC4-10FB4CFB8913.jpg",
-  F4: "/maps/A9BB413F-F260-4BCD-84E8-D88340D5618B.jpg",
-  F5: "/maps/AED2E0EC-01EA-4155-A29D-66A446D6AE27.jpg",
-  F6: "/maps/39A2C3D5-0B3B-435E-B430-D032E89D5FF6.jpg",
-  R: "/maps/2CFB8CB9-4DFD-45E5-B8F3-7D7BFB4AD7D5.jpg",
+  B1: publicUrl("maps/F2ACA74B-5834-4A4F-B470-F2A5C29142E1.jpg"),
+  F1: publicUrl("maps/790362A7-FB6B-4288-9E3C-325BEC229886.jpg"),
+  F2: publicUrl("maps/EDE2C58D-FA73-47AD-9B2D-E135C1E90820.jpg"),
+  F3: publicUrl("maps/AB16D0FD-2F27-4BC2-BFC4-10FB4CFB8913.jpg"),
+  F4: publicUrl("maps/A9BB413F-F260-4BCD-84E8-D88340D5618B.jpg"),
+  F5: publicUrl("maps/AED2E0EC-01EA-4155-A29D-66A446D6AE27.jpg"),
+  F6: publicUrl("maps/39A2C3D5-0B3B-435E-B430-D032E89D5FF6.jpg"),
+  R: publicUrl("maps/2CFB8CB9-4DFD-45E5-B8F3-7D7BFB4AD7D5.jpg"),
 };

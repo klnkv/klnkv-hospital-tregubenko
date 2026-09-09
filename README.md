@@ -16,19 +16,19 @@ cameras, interiors and the town atlas before the Unreal port.
 
 Look-dev ходит по сборке, а не по репозиторию. Инструкция: [LOOKDEV.md](./LOOKDEV.md).
 
-## Ссылка для прогулки (не GitHub)
+## Ссылка для прогулки (бесплатно)
 
-GitHub — исходники. Тестеру нужна страница, которая открывается в Safari.
+Не Vercel. Не отдельный аккаунт. Не карта.
 
-Один раз залогинься GitHub на [vercel.com/new](https://vercel.com/new/clone?repository-url=https://github.com/klnkv/klnkv-hospital-tregubenko) → Import этот репозиторий → Deploy.
+Прогулка публикуется **GitHub Pages** с этого же репозитория (бесплатно для
+публичного кода):
 
-После этого живая ссылка обычно такая:
+**https://klnkv.github.io/klnkv-hospital-tregubenko/**
 
-**https://klnkv-hospital-tregubenko.vercel.app**
+Эту ссылку и отправляй look-dev. После пуша в `main` страница сама обновится.
 
-Её и отправляй. Каждый push в `main` обновляет прогулку сам.
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/klnkv/klnkv-hospital-tregubenko)
+KPI/проценты готовности — внутренняя таблица в [STATUS.md](./STATUS.md), не
+сервис и не подписка.
 
 ## Run locally
 
