@@ -12,7 +12,8 @@ import {
   type TownLocation,
 } from "@/game/town";
 import { usePanZoom } from "@/components/usePanZoom";
-import { TownDrawnMap } from "@/components/TownDrawnMap";
+import { TOWN_LAYERS_ON, TOWN_LAYER_ITEMS, TownDrawnMap, type TownLayer } from "@/components/TownDrawnMap";
+import { LayerStrip, toggleLayer } from "@/components/LayerStrip";
 
 type Props = {
   focusId?: number | null;
@@ -59,6 +60,7 @@ export function TownAtlas({
   const [district, setDistrict] = useState<DistrictId | "ALL">("ALL");
   const [listOpen, setListOpen] = useState(false);
   const [ready, setReady] = useState(false);
+  const [layers, setLayers] = useState(TOWN_LAYERS_ON);
 
   const loc = locById(sel) ?? TOWN[0]!;
   const passages = passagesForTown(loc.id);
@@ -195,7 +197,8 @@ export function TownAtlas({
               className="absolute left-0 top-0 origin-top-left touch-none"
               style={map.contentStyle}
             >
-              <TownDrawnMap />
+              <TownDrawnMap layers={layers} />
+              {layers.links && (
               <svg
                 className="pointer-events-none absolute inset-0"
                 viewBox={`0 0 ${TOWN_MAP_W} ${TOWN_MAP_H}`}
@@ -218,9 +221,11 @@ export function TownAtlas({
                   );
                 })}
               </svg>
+              )}
             </div>
+            {layers.sites && (
             <div className="pointer-events-none absolute inset-0 touch-none">
-              {TOWN.flatMap((l) => {
+              {TOWN.filter((l) => layers.hidden || !l.hidden).flatMap((l) => {
                 const pts = [
                   { x: l.x, y: l.y, primary: true },
                   ...(l.sites ?? []).map((site) => ({ ...site, primary: false })),
@@ -241,6 +246,12 @@ export function TownAtlas({
                 });
               })}
             </div>
+            )}
+            <LayerStrip
+              layers={TOWN_LAYER_ITEMS}
+              active={layers}
+              onToggle={(id: TownLayer) => setLayers((p) => toggleLayer(p, id))}
+            />
             <div className="pointer-events-none absolute bottom-3 right-3 z-10 flex items-center gap-1">
               <p className="mr-1 rounded-sm border border-border bg-bg/80 px-2 py-1 font-mono text-[10px] text-muted">
                 щипок · {map.zoom.toFixed(1)}×
