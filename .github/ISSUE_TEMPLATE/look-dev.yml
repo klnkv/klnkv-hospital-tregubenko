@@ -1,0 +1,40 @@
+name: Look-dev
+description: Материал, лица, масштаб — без кода
+title: "[look-dev] "
+labels: ["look-dev"]
+body:
+  - type: dropdown
+    id: where
+    attributes:
+      label: Где
+      options:
+        - Ворота / аллея
+        - Столовая пилота
+        - Кухня / пищеблок
+        - Коридор / другой этаж
+        - Карта города
+        - Другое
+    validations:
+      required: true
+  - type: textarea
+    id: material
+    attributes:
+      label: Материал
+      description: Стена, ткань, дерево, металл, пол. Что врёт.
+    validations:
+      required: true
+  - type: textarea
+    id: faces
+    attributes:
+      label: Лица и фигуры
+      description: Повар, гости, санитары. Что разнести / что оставить.
+  - type: textarea
+    id: scale
+    attributes:
+      label: Масштаб
+      description: Комната тесная, стол мелкий, потолок, проход.
+  - type: textarea
+    id: shots
+    attributes:
+      label: Скрины
+      description: Вставь картинки сюда или приложи файлы.

@@ -7,14 +7,35 @@ cameras, interiors and the town atlas before the Unreal port.
 
 **Repo:** [klnkv/klnkv-hospital-tregubenko](https://github.com/klnkv/klnkv-hospital-tregubenko)
 
-## Run
+## Команда
+
+| Роль | Кто |
+|------|-----|
+| Production, explorer, Unreal port path | [klnkv](https://github.com/klnkv) |
+| Look-dev / art direction / исходная 3D-модель / текстуры / лица | супруга проекта — имя в титрах по её выбору |
+
+Look-dev ходит по сборке, а не по репозиторию. Инструкция: [LOOKDEV.md](./LOOKDEV.md).
+
+## Ссылка для прогулки (не GitHub)
+
+GitHub — исходники. Тестеру нужна страница, которая открывается в Safari.
+
+Один раз залогинься GitHub на [vercel.com/new](https://vercel.com/new/clone?repository-url=https://github.com/klnkv/klnkv-hospital-tregubenko) → Import этот репозиторий → Deploy.
+
+После этого живая ссылка обычно такая:
+
+**https://klnkv-hospital-tregubenko.vercel.app**
+
+Её и отправляй. Каждый push в `main` обновляет прогулку сам.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/klnkv/klnkv-hospital-tregubenko)
+
+## Run locally
 
 ```bash
 npm install
 npm run dev
 ```
-
-Open the preview, click **Ход**, walk with WASD.
 
 | Key | Action |
 |-----|--------|
@@ -40,8 +61,6 @@ West wing, floor 1:
 - `F1-DINING` — elite dining: trinity table, three guest armchairs, buffet,
   serving console, salt cellar, silver, closed curtains.
 - `F1-KITCHEN` — kitchen: island, storage, knife block, pass to `F1-WX`.
-
-Catalog → F1 → «Элитная столовая» / «Пищеблок / кухня».
 
 ## Status
 
