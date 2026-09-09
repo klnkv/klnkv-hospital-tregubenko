@@ -5,6 +5,7 @@ import {
   corridorsOn,
   cx,
   cy,
+  doorEdge,
   rd,
   roomsOn,
   rw,
@@ -745,29 +746,6 @@ export function createWorld(): WorldHandle {
   const orderlyA = standingStaff(suitChar, skinM, blackM);
   const orderlyB = standingStaff(suitNavy, skinPale, hairSand);
   const nurseG = standingStaff(whitesM, skinElder, hairSilver);
-
-  function doorEdge(r: RoomDef): "N" | "S" | "E" | "W" {
-    const cors = corridorsOn(r.floor);
-    let best: "N" | "S" | "E" | "W" = "N";
-    let score = -1;
-    const tryEdge = (edge: "N" | "S" | "E" | "W", x0: number, x1: number, y0: number, y1: number) => {
-      let s = 0;
-      for (const c of cors) {
-        const ox = Math.max(0, Math.min(x1, c.x1) - Math.max(x0, c.x0));
-        const oy = Math.max(0, Math.min(y1, c.y1) - Math.max(y0, c.y0));
-        s = Math.max(s, ox * oy);
-      }
-      if (s > score) {
-        score = s;
-        best = edge;
-      }
-    };
-    tryEdge("N", r.x0, r.x1, r.y1 - 0.2, r.y1 + 1.2);
-    tryEdge("S", r.x0, r.x1, r.y0 - 1.2, r.y0 + 0.2);
-    tryEdge("E", r.x1 - 0.2, r.x1 + 1.2, r.y0, r.y1);
-    tryEdge("W", r.x0 - 1.2, r.x0 + 0.2, r.y0, r.y1);
-    return best;
-  }
 
   function wallPair(
     isNew: boolean,

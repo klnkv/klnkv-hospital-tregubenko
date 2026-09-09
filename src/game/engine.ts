@@ -185,13 +185,27 @@ export function mountEngine(
 
   function tryMove(nx: number, ny: number) {
     const pad = PLAYER_RADIUS;
-    if (isWalkable(floor, nx, ny, pad)) {
-      x = nx;
-      y = ny;
-      return;
+    const dx = nx - x;
+    const dy = ny - y;
+    const dist = Math.hypot(dx, dy);
+    const steps = Math.max(1, Math.ceil(dist / 0.1));
+    let cx = x;
+    let cy = y;
+    const sx = dx / steps;
+    const sy = dy / steps;
+    for (let i = 0; i < steps; i++) {
+      const tx = cx + sx;
+      const ty = cy + sy;
+      if (isWalkable(floor, tx, ty, pad)) {
+        cx = tx;
+        cy = ty;
+        continue;
+      }
+      if (isWalkable(floor, tx, cy, pad)) cx = tx;
+      if (isWalkable(floor, cx, ty, pad)) cy = ty;
     }
-    if (isWalkable(floor, nx, y, pad)) x = nx;
-    if (isWalkable(floor, x, ny, pad)) y = ny;
+    x = cx;
+    y = cy;
   }
 
   function step(now: number) {

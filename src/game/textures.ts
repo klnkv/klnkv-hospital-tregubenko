@@ -19,7 +19,10 @@ function canvasTex(
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(repeat, repeat);
   t.colorSpace = colorSpace;
-  t.anisotropy = 8;
+  t.anisotropy = 16;
+  t.generateMipmaps = true;
+  t.minFilter = THREE.LinearMipmapLinearFilter;
+  t.magFilter = THREE.LinearFilter;
   t.needsUpdate = true;
   cache.set(key, t);
   return t;

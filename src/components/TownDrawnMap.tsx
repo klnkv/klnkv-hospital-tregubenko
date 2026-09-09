@@ -30,22 +30,24 @@ export function TownDrawnMap({ layers = TOWN_LAYER_VIS }: { layers?: Record<Town
       height={TOWN_MAP_H}
       className="absolute left-0 top-0"
       aria-label="Last Resort Town — карта города"
+      shapeRendering="geometricPrecision"
     >
       <defs>
         <pattern id="hatch" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(38)">
           <line x1="0" y1="0" x2="0" y2="18" stroke="#2a2d28" strokeWidth="1" />
         </pattern>
+        <pattern id="grid500" width="75" height="75" patternUnits="userSpaceOnUse">
+          <path d="M 75 0 L 0 0 0 75" fill="none" stroke="#2a2d28" strokeWidth="0.6" />
+        </pattern>
         <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#161814" />
           <stop offset="1" stopColor="#0e100d" />
         </linearGradient>
-        <filter id="soft">
-          <feGaussianBlur stdDeviation="6" />
-        </filter>
       </defs>
 
       <rect width={TOWN_MAP_W} height={TOWN_MAP_H} fill="url(#paper)" />
-      <rect width={TOWN_MAP_W} height={TOWN_MAP_H} fill="url(#hatch)" opacity="0.35" />
+      <rect width={TOWN_MAP_W} height={TOWN_MAP_H} fill="url(#hatch)" opacity="0.28" />
+      <rect width={TOWN_MAP_W} height={TOWN_MAP_H} fill="url(#grid500)" opacity="0.55" />
 
       {layers.districts.on && (
         <g opacity={layers.districts.opacity}>
@@ -83,14 +85,14 @@ export function TownDrawnMap({ layers = TOWN_LAYER_VIS }: { layers?: Record<Town
 
       {layers.rail.on && (
         <g opacity={layers.rail.opacity}>
-          <path d="M248 20 L268 380 L318 640 L292 980" fill="none" stroke="#8b8f84" strokeWidth="5" />
-          <path
-            d="M248 20 L268 380 L318 640 L292 980"
-            fill="none"
-            stroke="#0b0c0a"
-            strokeWidth="2"
-            strokeDasharray="12 10"
-          />
+          <path d="M248 20 L268 380 L318 640 L292 980" fill="none" stroke="#8b8f84" strokeWidth="7" />
+          <path d="M248 20 L268 380 L318 640 L292 980" fill="none" stroke="#0b0c0a" strokeWidth="2.4" strokeDasharray="14 11" />
+          {Array.from({ length: 28 }, (_, i) => {
+            const t = (i + 0.5) / 28;
+            const x = 248 + t * 44;
+            const y = 20 + t * 960;
+            return <line key={i} x1={x - 9} y1={y} x2={x + 9} y2={y} stroke="#8b8f84" strokeWidth="2" />;
+          })}
         </g>
       )}
 
@@ -99,14 +101,21 @@ export function TownDrawnMap({ layers = TOWN_LAYER_VIS }: { layers?: Record<Town
           <path
             d="M180 430 L1320 430 M684 40 L684 960 M400 640 L1100 760 M520 200 L1100 200"
             fill="none"
+            stroke="#1b1d19"
+            strokeWidth="10"
+          />
+          <path
+            d="M180 430 L1320 430 M684 40 L684 960 M400 640 L1100 760 M520 200 L1100 200"
+            fill="none"
             stroke="#c4b89a"
-            strokeWidth="3.2"
-            opacity="0.28"
+            strokeWidth="3.4"
+            strokeDasharray="18 10"
+            opacity="0.85"
           />
           {layers.river.on && (
             <>
-              <rect x="668" y="78" width="74" height="18" rx="2" fill="#8a7a62" />
-              <rect x="762" y="790" width="78" height="18" rx="2" fill="#8a7a62" />
+              <rect x="668" y="78" width="74" height="18" rx="2" fill="#8a7a62" stroke="#c4b89a" strokeWidth="1.2" />
+              <rect x="762" y="790" width="78" height="18" rx="2" fill="#8a7a62" stroke="#c4b89a" strokeWidth="1.2" />
             </>
           )}
         </g>
@@ -137,16 +146,18 @@ export function TownDrawnMap({ layers = TOWN_LAYER_VIS }: { layers?: Record<Town
 
       {layers.river.on && (
         <g opacity={layers.river.opacity}>
-          <path d={RIVER_BANK} fill="#1a3a42" opacity="0.95" filter="url(#soft)" />
-          <path d={RIVER} fill="none" stroke="#3f5c68" strokeWidth="28" strokeLinecap="round" />
-          <path d={RIVER} fill="none" stroke="#7aa0aa" strokeWidth="6" opacity="0.35" />
+          <path d={RIVER_BANK} fill="#1a3a42" />
+          <path d={RIVER} fill="none" stroke="#3f5c68" strokeWidth="22" strokeLinecap="round" />
+          <path d={RIVER} fill="none" stroke="#7aa0aa" strokeWidth="4.5" opacity="0.55" />
         </g>
       )}
 
       {layers.sites.on && (
         <g opacity={layers.sites.opacity}>
-          <rect x="662" y="396" width="44" height="34" fill="#9aaa90" stroke="#e6e2d6" strokeWidth="1.4" />
-          <rect x="672" y="404" width="16" height="12" fill="#141613" opacity="0.5" />
+          {/* 1:10 000 — 0.15 px/m. Корпус 96×72 м, двор 36×28. */}
+          <rect x={684.1 - 7.2} y={416.5 - 5.4} width={14.4} height={10.8} fill="#9aaa90" stroke="#e6e2d6" strokeWidth="0.7" />
+          <rect x={684.1 - 2.7} y={416.5 - 2.1} width={5.4} height={4.2} fill="#141613" />
+          <rect x={684.1 - 9} y={416.5 - 7} width={18} height={16} fill="none" stroke="#9aaa90" strokeWidth="0.6" strokeDasharray="2 1.6" />
           {TOWN.flatMap((l) => {
             const pts = [{ x: l.x, y: l.y, primary: true }, ...(l.sites ?? []).map((s) => ({ ...s, primary: false }))];
             return pts.map((pt, i) => (
@@ -181,26 +192,37 @@ export function TownDrawnMap({ layers = TOWN_LAYER_VIS }: { layers?: Record<Town
       <text x="80" y="56" fill="#9aaa90" fontFamily="IBM Plex Sans, sans-serif" fontSize="13" letterSpacing="4">
         LAST RESORT TOWN
       </text>
-      <text x="80" y="86" fill="#e6e2d6" fontFamily="IBM Plex Serif, serif" fontSize="28">
+      <text
+        x="80"
+        y="86"
+        fill="#e6e2d6"
+        fontFamily="IBM Plex Serif, serif"
+        fontSize="28"
+        paintOrder="stroke"
+        stroke="#0b0c0a"
+        strokeWidth="4"
+      >
         Карта города
       </text>
       <text x="80" y="112" fill="#8b8f84" fontFamily="IBM Plex Sans, sans-serif" fontSize="12">
-        1 : 10 000 · север сверху · слои навигации
+        1 : 10 000 · север сверху · сетка 500 м · корпус 96×72 м
       </text>
 
       <g transform="translate(1400,90)">
-        <circle r="28" fill="#141613" stroke="#2a2d28" />
-        <polygon points="0,-22 7,8 -7,8" fill="#9aaa90" />
+        <circle r="28" fill="#141613" stroke="#2a2d28" strokeWidth="1.4" />
+        <circle r="22" fill="none" stroke="#8b8f84" strokeWidth="0.6" />
+        <polygon points="0,-20 6,8 -6,8" fill="#9aaa90" />
         <text y="38" textAnchor="middle" fill="#8b8f84" fontSize="11" fontFamily="IBM Plex Sans, sans-serif">
           С
         </text>
       </g>
       <g transform="translate(80,940)">
-        <line x1="0" y1="0" x2="150" y2="0" stroke="#e6e2d6" strokeWidth="2" />
-        <line x1="0" y1="-6" x2="0" y2="6" stroke="#e6e2d6" />
-        <line x1="150" y1="-6" x2="150" y2="6" stroke="#e6e2d6" />
+        <line x1="0" y1="0" x2="150" y2="0" stroke="#e6e2d6" strokeWidth="2.2" />
+        <line x1="0" y1="-7" x2="0" y2="7" stroke="#e6e2d6" />
+        <line x1="75" y1="-5" x2="75" y2="5" stroke="#e6e2d6" />
+        <line x1="150" y1="-7" x2="150" y2="7" stroke="#e6e2d6" />
         <text y="22" fill="#8b8f84" fontSize="11" fontFamily="IBM Plex Sans, sans-serif">
-          0 — 1 км
+          0 — 500 м — 1 км
         </text>
       </g>
     </svg>
@@ -217,7 +239,10 @@ function DistrictLabel({ x, y, text }: { x: number; y: number; text: string }) {
       fontSize="13"
       letterSpacing="2"
       fontFamily="IBM Plex Sans, sans-serif"
-      opacity="0.85"
+      opacity="0.9"
+      paintOrder="stroke"
+      stroke="#0b0c0a"
+      strokeWidth="3"
     >
       {text.toUpperCase()}
     </text>

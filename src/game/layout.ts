@@ -157,7 +157,7 @@ function corridorsFor(floor: FloorId): CorridorDef[] {
       { id: "F1-KPP", floor, name: "КПП", x0: -18, x1: -6, y0: -82, y1: -74 },
       { id: "F1-DRIVE", floor, name: "Аллея", x0: -7.2, x1: 7.2, y0: -78, y1: -45 },
       { id: "F1-PLAZA", floor, name: "Площадь у входа", x0: -18, x1: 18, y0: -52, y1: -43 },
-      { id: "F1-SOUTH", floor, name: "Южный фасад", x0: -46, x1: 46, y0: -48, y1: -37 },
+      { id: "F1-SOUTH", floor, name: "Южный фасад", x0: -46, x1: 46, y0: -48, y1: -35.5 },
       { id: "F1-PARK", floor, name: "Парковка", x0: 18, x1: 48, y0: -72, y1: -46 },
     );
   }
@@ -212,13 +212,8 @@ export function walkables(floor: FloorId): Rect[] {
     ];
   }
   const list: Rect[] = [];
-  const grow = 0.55;
-  for (const r of roomsOn(floor)) {
-    list.push({ x0: r.x0 - grow, x1: r.x1 + grow, y0: r.y0 - grow, y1: r.y1 + grow });
-  }
-  for (const c of corridorsOn(floor)) {
-    list.push({ x0: c.x0 - grow, x1: c.x1 + grow, y0: c.y0 - grow, y1: c.y1 + grow });
-  }
+  for (const r of roomsOn(floor)) list.push(r);
+  for (const c of corridorsOn(floor)) list.push(c);
   return list;
 }
 
@@ -228,6 +223,128 @@ const BLOCKERS: Rect[] = [
   { x0: 2.1, x1: 6.3, y0: -82.0, y1: -76.6 },
   { x0: -14.0, x1: -8.4, y0: -80.4, y1: -76.4 },
 ];
+
+export const DOOR_GAP = 1.2;
+export const WALL_TH = 0.28;
+
+type Edge = "N" | "S" | "E" | "W";
+
+export function doorEdge(r: RoomDef): Edge {
+  const cors = corridorsOn(r.floor);
+  let best: Edge = "S";
+  let score = -1;
+  const tryEdge = (edge: Edge, x0: number, x1: number, y0: number, y1: number) => {
+    let s = 0;
+    for (const c of cors) {
+      const ox = Math.max(0, Math.min(x1, c.x1) - Math.max(x0, c.x0));
+      const oy = Math.max(0, Math.min(y1, c.y1) - Math.max(y0, c.y0));
+      s = Math.max(s, ox * oy);
+    }
+    if (s > score) {
+      score = s;
+      best = edge;
+    }
+  };
+  tryEdge("N", r.x0, r.x1, r.y1 - 0.2, r.y1 + 1.2);
+  tryEdge("S", r.x0, r.x1, r.y0 - 1.2, r.y0 + 0.2);
+  tryEdge("E", r.x1 - 0.2, r.x1 + 1.2, r.y0, r.y1);
+  tryEdge("W", r.x0 - 1.2, r.x0 + 0.2, r.y0, r.y1);
+  return best;
+}
+
+function pushSeg(out: Rect[], x0: number, x1: number, y0: number, y1: number) {
+  if (x1 - x0 < 0.08 || y1 - y0 < 0.08) return;
+  out.push({ x0, x1, y0, y1 });
+}
+
+function wallOnEdge(out: Rect[], r: RoomDef, edge: Edge, gapAt: number | null) {
+  const h = WALL_TH / 2;
+  const g = DOOR_GAP / 2;
+  if (edge === "N") {
+    const y0 = r.y1 - h;
+    const y1 = r.y1 + h;
+    if (gapAt == null) pushSeg(out, r.x0, r.x1, y0, y1);
+    else {
+      pushSeg(out, r.x0, gapAt - g, y0, y1);
+      pushSeg(out, gapAt + g, r.x1, y0, y1);
+    }
+  } else if (edge === "S") {
+    const y0 = r.y0 - h;
+    const y1 = r.y0 + h;
+    if (gapAt == null) pushSeg(out, r.x0, r.x1, y0, y1);
+    else {
+      pushSeg(out, r.x0, gapAt - g, y0, y1);
+      pushSeg(out, gapAt + g, r.x1, y0, y1);
+    }
+  } else if (edge === "E") {
+    const x0 = r.x1 - h;
+    const x1 = r.x1 + h;
+    if (gapAt == null) pushSeg(out, x0, x1, r.y0, r.y1);
+    else {
+      pushSeg(out, x0, x1, r.y0, gapAt - g);
+      pushSeg(out, x0, x1, gapAt + g, r.y1);
+    }
+  } else {
+    const x0 = r.x0 - h;
+    const x1 = r.x0 + h;
+    if (gapAt == null) pushSeg(out, x0, x1, r.y0, r.y1);
+    else {
+      pushSeg(out, x0, x1, r.y0, gapAt - g);
+      pushSeg(out, x0, x1, gapAt + g, r.y1);
+    }
+  }
+}
+
+function portalOf(r: RoomDef, edge: Edge): Rect {
+  const mx = (r.x0 + r.x1) / 2;
+  const my = (r.y0 + r.y1) / 2;
+  const g = DOOR_GAP / 2;
+  const into = 0.72;
+  if (edge === "N") return { x0: mx - g, x1: mx + g, y0: r.y1 - 0.22, y1: r.y1 + into };
+  if (edge === "S") return { x0: mx - g, x1: mx + g, y0: r.y0 - into, y1: r.y0 + 0.22 };
+  if (edge === "E") return { x0: r.x1 - 0.22, x1: r.x1 + into, y0: my - g, y1: my + g };
+  return { x0: r.x0 - into, x1: r.x0 + 0.22, y0: my - g, y1: my + g };
+}
+
+const _walls = new Map<FloorId, Rect[]>();
+const _ports = new Map<FloorId, Rect[]>();
+
+function colliders(floor: FloorId) {
+  if (_walls.has(floor)) return;
+  const walls: Rect[] = [];
+  const ports: Rect[] = [];
+  if (floor !== "R") {
+    for (const r of roomsOn(floor)) {
+      const d = doorEdge(r);
+      const mx = (r.x0 + r.x1) / 2;
+      const my = (r.y0 + r.y1) / 2;
+      for (const e of ["N", "S", "E", "W"] as const) {
+        wallOnEdge(walls, r, e, e === d ? (e === "N" || e === "S" ? mx : my) : null);
+      }
+      ports.push(portalOf(r, d));
+    }
+  }
+  _walls.set(floor, walls);
+  _ports.set(floor, ports);
+}
+
+export function wallsOn(floor: FloorId): Rect[] {
+  colliders(floor);
+  return _walls.get(floor) ?? [];
+}
+
+export function portalsOn(floor: FloorId): Rect[] {
+  colliders(floor);
+  return _ports.get(floor) ?? [];
+}
+
+function circleHits(x: number, y: number, rad: number, r: Rect): boolean {
+  const qx = Math.max(r.x0, Math.min(x, r.x1));
+  const qy = Math.max(r.y0, Math.min(y, r.y1));
+  const dx = x - qx;
+  const dy = y - qy;
+  return dx * dx + dy * dy < rad * rad;
+}
 
 export function isOutside(floor: FloorId, x: number, y: number): boolean {
   if (floor !== "F1") return false;
@@ -254,15 +371,20 @@ export function corridorAt(floor: FloorId, x: number, y: number): CorridorDef | 
 
 export function isWalkable(floor: FloorId, x: number, y: number, pad = 0.28): boolean {
   for (const b of BLOCKERS) {
-    if (contains(b, x, y, -0.05)) return false;
+    if (circleHits(x, y, pad, b)) return false;
   }
-  // Inflate rooms/corridors so door seams (touching edges, 0.2 m partitions)
-  // stay crossable while the player radius still fits inside.
-  const shrink = Math.max(0, pad - 0.12);
-  for (const r of walkables(floor)) {
-    if (contains(r, x, y, shrink)) return true;
+  for (const w of wallsOn(floor)) {
+    if (circleHits(x, y, pad, w)) return false;
   }
-  // Roof doughnut: not inside courtyard hole
+  for (const r of roomsOn(floor)) {
+    if (contains(r, x, y, Math.min(pad, 0.16))) return true;
+  }
+  for (const c of corridorsOn(floor)) {
+    if (contains(c, x, y, 0.04)) return true;
+  }
+  for (const p of portalsOn(floor)) {
+    if (contains(p, x, y, 0.02)) return true;
+  }
   if (floor === "R") {
     const inCourt = x > -18 && x < 18 && y > -14 && y < 14;
     const inDeck = x > -50 && x < 50 && y > -38 && y < 38;
