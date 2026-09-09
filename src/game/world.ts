@@ -10,6 +10,7 @@ import {
   roomsOn,
   rw,
 } from "./layout";
+import { CATALOG, doorNumber } from "./catalog";
 import { SHOTS } from "./shots";
 import * as tex from "./textures";
 import type { FloorId, RoomDef, RoomType } from "./types";
@@ -570,6 +571,9 @@ export function createWorld(): WorldHandle {
   const interior = new THREE.Group();
   interior.name = "interior";
   root.add(interior);
+  const doorSigns = new THREE.Group();
+  doorSigns.name = "door-signs";
+  interior.add(doorSigns);
 
   const B = {
     floorOld: new Instancer(box, floorOld, 80, interior),
@@ -769,6 +773,53 @@ export function createWorld(): WorldHandle {
     const hi = isNew ? B.plasterNew : B.plaster;
     lo.add(x, y + lowerH / 2, z, sx, lowerH, sz);
     hi.add(x, y + lowerH + upperH / 2, z, sx, upperH, sz);
+  }
+
+  function clearDoorSigns() {
+    for (const ch of [...doorSigns.children]) {
+      doorSigns.remove(ch);
+      const mesh = ch as THREE.Mesh;
+      const mat = mesh.material as THREE.MeshStandardMaterial;
+      mat.map?.dispose();
+      mat.dispose();
+    }
+  }
+
+  function hangDoorPlate(
+    r: RoomDef,
+    edge: "N" | "S" | "E" | "W",
+    wallX: number,
+    wallZ: number,
+    y: number,
+    gap: number,
+  ) {
+    const num = doorNumber(r.id, r.name, r.floor, r.slot);
+    const extra =
+      r.floor !== "R" && r.slot ? (CATALOG[r.floor]?.[r.slot]?.label ?? "") : "";
+    const map = tex.makeDoorPlate(num, r.name, extra);
+    const plateM = new THREE.MeshBasicMaterial({
+      map,
+    });
+    const plate = new THREE.Mesh(box, plateM);
+    const pw = 0.38;
+    const ph = 0.26;
+    const pt = 0.02;
+    const side = gap / 2 + 0.28;
+    const hy = y + 1.62;
+    if (edge === "N") {
+      plate.position.set(wallX - side, hy, wallZ - 0.05);
+      plate.scale.set(pw, ph, pt);
+    } else if (edge === "S") {
+      plate.position.set(wallX + side, hy, wallZ + 0.05);
+      plate.scale.set(pw, ph, pt);
+    } else if (edge === "E") {
+      plate.position.set(wallX + 0.05, hy, wallZ - side);
+      plate.scale.set(pt, ph, pw);
+    } else {
+      plate.position.set(wallX - 0.05, hy, wallZ + side);
+      plate.scale.set(pt, ph, pw);
+    }
+    doorSigns.add(plate);
   }
 
   function furnish(r: RoomDef, y: number) {
@@ -1135,6 +1186,7 @@ export function createWorld(): WorldHandle {
 
   function buildFloor(floor: FloorId) {
     for (const b of Object.values(B)) b.reset();
+    clearDoorSigns();
     chefG.visible = false;
     diningPlaque.visible = false;
     kitchenPlaque.visible = false;
@@ -1218,12 +1270,14 @@ export function createWorld(): WorldHandle {
             const hi = isNew ? B.plasterNew : B.plaster;
             hi.add(ed.x, y + 2.2 + (h - 2.2) / 2, ed.z, gap, h - 2.2, th);
             B.wood.add(ed.x + 0.45, y + 1.1, ed.z, 0.9, 2.2, 0.05);
+            hangDoorPlate(r, ed.e, ed.x, ed.z, y, gap);
           } else {
             wallPair(isNew, ed.x, ed.z - (gap / 2 + half / 2), th, half, y, lowerH, upperH);
             wallPair(isNew, ed.x, ed.z + (gap / 2 + half / 2), th, half, y, lowerH, upperH);
             const hi = isNew ? B.plasterNew : B.plaster;
             hi.add(ed.x, y + 2.2 + (h - 2.2) / 2, ed.z, th, h - 2.2, gap);
             B.wood.add(ed.x, y + 1.1, ed.z + 0.45, 0.05, 2.2, 0.9);
+            hangDoorPlate(r, ed.e, ed.x, ed.z, y, gap);
           }
         } else {
           wallPair(isNew, ed.x, ed.z, ed.sx, ed.sz, y, lowerH, upperH);

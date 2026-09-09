@@ -504,6 +504,69 @@ export function makeSign(text: string, w = 1024, h = 256): THREE.CanvasTexture {
   return t;
 }
 
+export function makeDoorPlate(num: string, title: string, extra = ""): THREE.CanvasTexture {
+  const w = 768;
+  const h = 512;
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext("2d")!;
+  ctx.fillStyle = "#8a8070";
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "#ece6da";
+  ctx.fillRect(14, 14, w - 28, h - 28);
+  ctx.strokeStyle = "#6a5e4e";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(22, 22, w - 44, h - 44);
+
+  ctx.fillStyle = "#1c1814";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const numSize = num.length > 3 ? 118 : 136;
+  ctx.font = `700 ${numSize}px "IBM Plex Sans", "Noto Sans", sans-serif`;
+  ctx.fillText(num, w / 2, 128);
+
+  ctx.strokeStyle = "#b0a494";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(64, 210);
+  ctx.lineTo(w - 64, 210);
+  ctx.stroke();
+
+  let size = 36;
+  ctx.font = `500 ${size}px "IBM Plex Sans", "Noto Sans", sans-serif`;
+  const maxW = w - 96;
+  while (size > 18 && ctx.measureText(title).width > maxW) {
+    size -= 1;
+    ctx.font = `500 ${size}px "IBM Plex Sans", "Noto Sans", sans-serif`;
+  }
+  ctx.fillStyle = "#2a241c";
+  ctx.fillText(title, w / 2, 268);
+
+  ctx.fillStyle = "#f7f2ea";
+  ctx.fillRect(56, 330, w - 112, 118);
+  ctx.strokeStyle = "#c4b8a8";
+  ctx.setLineDash([10, 8]);
+  ctx.lineWidth = 2;
+  ctx.strokeRect(56, 330, w - 112, 118);
+  ctx.setLineDash([]);
+  if (extra) {
+    let eSize = 32;
+    ctx.font = `400 ${eSize}px "IBM Plex Sans", "Noto Sans", sans-serif`;
+    while (eSize > 16 && ctx.measureText(extra).width > maxW) {
+      eSize -= 1;
+      ctx.font = `400 ${eSize}px "IBM Plex Sans", "Noto Sans", sans-serif`;
+    }
+    ctx.fillStyle = "#1c1814";
+    ctx.fillText(extra, w / 2, 390);
+  }
+
+  const plate = new THREE.CanvasTexture(c);
+  plate.colorSpace = THREE.SRGBColorSpace;
+  plate.anisotropy = 8;
+  return plate;
+}
+
 export function makeLetterB(): THREE.CanvasTexture {
   const c = document.createElement("canvas");
   c.width = c.height = 512;

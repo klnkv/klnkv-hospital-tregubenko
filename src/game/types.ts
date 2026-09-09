@@ -30,6 +30,7 @@ export type RoomDef = {
   floor: FloorId;
   name: string;
   type: RoomType;
+  slot?: string;
   x0: number;
   x1: number;
   y0: number;

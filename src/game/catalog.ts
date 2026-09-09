@@ -1,6 +1,6 @@
 import type { FloorId, RoomType } from "./types";
 
-export type RoomMeta = { name: string; type: RoomType };
+export type RoomMeta = { name: string; type: RoomType; label?: string };
 
 const W = (name: string): RoomMeta => ({ name, type: "WARD" });
 const O = (name: string): RoomMeta => ({ name, type: "OFFICE" });
@@ -418,3 +418,86 @@ export const SLOT_ID: Record<string, Partial<Record<FloorId, string>>> = {
   WW1: { F1: "KITCHEN", B1: "BS1" },
   WW2: { F1: "DINING", B1: "BS2" },
 };
+
+const FLOOR_HUNDREDS: Record<string, number> = {
+  B1: 0,
+  F1: 100,
+  F2: 200,
+  F3: 300,
+  F4: 400,
+  F5: 500,
+  F6: 600,
+};
+
+const SLOT_EXTRA: Record<string, number> = {
+  IN01: 41,
+  IN02: 42,
+  IN03: 43,
+  IN04: 44,
+  IN05: 45,
+  IN06: 46,
+  IN07: 47,
+  IN08: 48,
+  IN09: 49,
+  IN10: 50,
+  IN11: 51,
+  IN12: 52,
+  WO1: 61,
+  WO2: 62,
+  WO3: 63,
+  WI1: 64,
+  WI2: 65,
+  WI3: 66,
+  EI1: 71,
+  EI2: 72,
+  EI3: 73,
+  EO1: 74,
+  EO2: 75,
+  EO3: 76,
+  WW1: 39,
+  WW2: 40,
+  EW1: 37,
+  EW2: 38,
+  C1: 21,
+  C2: 22,
+  C3: 23,
+  C4: 24,
+  S1: 1,
+  S2: 2,
+};
+
+const CORE_MARK: Record<string, string> = {
+  STA: "A",
+  STB: "B",
+  STC: "C",
+  LIFT: "L",
+  LFTS: "S",
+};
+
+function slotOf(id: string): string {
+  const i = id.indexOf("-");
+  return i >= 0 ? id.slice(i + 1) : id;
+}
+
+/** Door plate number. Second line of the plate stays empty for any language. */
+export function doorNumber(id: string, name: string, floor: FloorId, slot?: string): string {
+  const key = slot ?? slotOf(id);
+  if (CORE_MARK[key]) return CORE_MARK[key]!;
+  const mapped = SLOT_ID[key]?.[floor];
+  if (mapped && /^\d+$/.test(mapped)) return mapped;
+  const rest = slotOf(id);
+  if (/^\d+$/.test(rest)) return rest;
+  if (mapped === "DINING") return "140";
+  if (mapped === "KITCHEN") return "139";
+  if (mapped === "TOMA") return "218";
+  if (mapped === "BS1") return "039";
+  if (mapped === "BS2") return "040";
+  const fromName = name.match(/(\d{2,4})/);
+  if (fromName?.[1]) return fromName[1];
+  const extra = SLOT_EXTRA[key];
+  if (extra != null) {
+    const n = (FLOOR_HUNDREDS[floor] ?? 0) + extra;
+    return floor === "B1" ? String(n).padStart(2, "0") : String(n);
+  }
+  return rest.slice(0, 5);
+}

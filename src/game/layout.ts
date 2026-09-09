@@ -25,6 +25,7 @@ function room(
     floor,
     name: meta.name,
     type: meta.type,
+    slot,
     x0,
     x1,
     y0,
