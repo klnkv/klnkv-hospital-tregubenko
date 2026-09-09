@@ -1,0 +1,60 @@
+@import "tailwindcss";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-serif/500.css";
+@import "@fontsource/ibm-plex-serif/600.css";
+
+@theme {
+  --color-bg: #0b0c0a;
+  --color-surface: #141613;
+  --color-surface-2: #1b1d19;
+  --color-fg: #e6e2d6;
+  --color-muted: #8b8f84;
+  --color-subtle: #5c6058;
+  --color-accent: #9aaa90;
+  --color-accent-fg: #0b0c0a;
+  --color-border: #2a2d28;
+  --color-danger: #b07060;
+  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-display: "IBM Plex Serif", "Times New Roman", serif;
+  --font-mono: "IBM Plex Sans", ui-monospace, monospace;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  /* iOS Safari ignores SVG fill="none" when `color` is set — force hollow guides. */
+  .guide-svg {
+    overflow: visible;
+    fill: none !important;
+    stroke: currentColor;
+    filter: drop-shadow(0 0 0.6px var(--color-fg));
+  }
+  .guide-svg * {
+    fill: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
