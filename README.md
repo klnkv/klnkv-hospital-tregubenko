@@ -12,17 +12,13 @@ cameras, interiors and the town atlas before the Unreal port.
 | Роль | Кто |
 |------|-----|
 | Production, explorer, Unreal port path | [klnkv](https://github.com/klnkv) |
-| Look-dev / art direction / исходная 3D-модель / текстуры / лица | супруга проекта — имя в титрах по её выбору |
+| Look-dev / art direction / исходная 3D-модель / текстуры / лица | Кристина |
 
-Look-dev ходит по сборке, а не по репозиторию. Инструкция: [LOOKDEV.md](./LOOKDEV.md).
-
-## Ссылка для прогулки
-
-Жена / look-dev ходит по этой ссылке с iPad (Safari). Это GitHub Pages вашего аккаунта, без сторонних сервисов:
+Этот репозиторий и рабочий чат — продакшен. Кристине актуальная прогулка:
 
 **https://klnkv.github.io/**
 
-После обновления макета ссылка та же. KPI/проценты — таблица в [STATUS.md](./STATUS.md), не продукт.
+На кадре видны сборка и время правок. Инструкция: [LOOKDEV.md](./LOOKDEV.md).
 
 ## Run locally
 

@@ -7,6 +7,7 @@ import { SHOTS, type ShotId } from "@/game/shots";
 import type { FloorId, GameMode, GameSnapshot } from "@/game/types";
 import { TownAtlas } from "@/components/TownAtlas";
 import { MapBitmap, usePanZoom } from "@/components/usePanZoom";
+import { LookDevDock } from "@/components/LookDevDock";
 
 const emptySnap: GameSnapshot = {
   mode: "title",
@@ -109,6 +110,7 @@ export function HospitalApp() {
         className="absolute inset-0 h-full w-full touch-none"
         onContextMenu={(e) => e.preventDefault()}
       />
+      <LookDevDock placement={snap.mode === "title" && !townOpen ? "title" : "hud"} />
 
       {bootError && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-bg p-6 text-fg">
@@ -284,6 +286,7 @@ function TitleScreen({
         Город, который помнит.
       </p>
       <p className="mt-2 font-display text-sm italic text-fg/80">Здесь всё связано. Даже то, что не может быть связано.</p>
+      <p className="mt-2 text-xs text-muted">Look-dev · Кристина</p>
       <div className="mt-6 flex flex-wrap gap-3">
         <button
           onClick={onTown}
