@@ -491,6 +491,7 @@ export function mountEngine(
     setFloor: (f) => setFloor(f),
     setMode,
     setShot: (id) => setShot(id as ShotId),
+    walkable: (bx: number, by: number) => isWalkable(floor, bx, by, PLAYER_RADIUS),
   };
 
   function teleportTo(f: FloorId, bx: number, by: number) {
