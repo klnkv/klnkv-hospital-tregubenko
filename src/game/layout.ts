@@ -212,8 +212,13 @@ export function walkables(floor: FloorId): Rect[] {
     ];
   }
   const list: Rect[] = [];
-  for (const r of roomsOn(floor)) list.push(r);
-  for (const c of corridorsOn(floor)) list.push(c);
+  const grow = 0.55;
+  for (const r of roomsOn(floor)) {
+    list.push({ x0: r.x0 - grow, x1: r.x1 + grow, y0: r.y0 - grow, y1: r.y1 + grow });
+  }
+  for (const c of corridorsOn(floor)) {
+    list.push({ x0: c.x0 - grow, x1: c.x1 + grow, y0: c.y0 - grow, y1: c.y1 + grow });
+  }
   return list;
 }
 
@@ -253,7 +258,7 @@ export function isWalkable(floor: FloorId, x: number, y: number, pad = 0.28): bo
   }
   // Inflate rooms/corridors so door seams (touching edges, 0.2 m partitions)
   // stay crossable while the player radius still fits inside.
-  const shrink = pad - 0.48;
+  const shrink = Math.max(0, pad - 0.12);
   for (const r of walkables(floor)) {
     if (contains(r, x, y, shrink)) return true;
   }
