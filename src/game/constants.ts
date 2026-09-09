@@ -51,6 +51,11 @@ export const NEW_WING_X = 18;
 
 export const EYE = 1.6;
 export const PLAYER_RADIUS = 0.32;
+/** Unity CharacterController: skin ≥ 10% of radius, else the capsule jams in cracks. */
+export const CC_SKIN = 0.04;
+export const CC_MIN_MOVE = 0.0001;
+export const CC_MAX_BOUNCES = 5;
+export const CC_FIXED_DT = 1 / 60;
 export const WALK_SPEED = 3.4;
 export const SPRINT_SPEED = 6.2;
 
