@@ -176,6 +176,13 @@ export function HospitalApp() {
               </p>
             </div>
           )}
+          {snap.locked && snap.mode === "walk" && !passage && (
+            <div className="pointer-events-none absolute inset-x-0 bottom-24 z-10 flex justify-center md:hidden">
+              <p className="rounded-md border border-border bg-surface/80 px-4 py-2 text-sm text-muted">
+                Слева — ход · справа — взгляд
+              </p>
+            </div>
+          )}
           <MobileStick active={snap.mode === "walk"} />
         </>
       )}

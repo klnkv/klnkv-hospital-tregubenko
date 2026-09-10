@@ -31,6 +31,7 @@ export type Engine = {
   setShot: (id: ShotId) => void;
   teleportTo: (floor: FloorId, x: number, y: number) => void;
   setLabels: (v: boolean) => void;
+  setStick: (x: number, y: number) => void;
   resize: () => void;
   dispose: () => void;
 };
@@ -123,10 +124,14 @@ export function mountEngine(
   let orbitD = 92;
   let planH = 55;
   let bob = 0;
-  let touchLook: { id: number; x: number; y: number } | null = null;
   let stick = { x: 0, y: 0 };
   let hudAcc = 0;
   let physAcc = 0;
+  const pointers = new Map<number, { kind: "move" | "look"; x: number; y: number; ox: number; oy: number }>();
+
+  function touchWalk() {
+    return window.matchMedia("(pointer: coarse)").matches;
+  }
 
   world.setInteriorFloor(floor);
   world.setMassingVisible(true);
@@ -333,53 +338,74 @@ export function mountEngine(
 
   canvas.addEventListener("click", () => {
     if (mode === "title") return;
-    if (mode === "walk") {
-      try {
-        const req = canvas.requestPointerLock as (opts?: { unadjustedMovement?: boolean }) => Promise<void> | void;
-        const result = req.call(canvas, { unadjustedMovement: true });
-        if (result && typeof result.catch === "function") {
-          result.catch(() => canvas.requestPointerLock());
-        }
-      } catch {
-        canvas.requestPointerLock();
+    if (mode !== "walk") return;
+    if (touchWalk()) return;
+    try {
+      const req = canvas.requestPointerLock as (opts?: { unadjustedMovement?: boolean }) => Promise<void> | void;
+      const result = req.call(canvas, { unadjustedMovement: true });
+      if (result && typeof result.catch === "function") {
+        result.catch(() => canvas.requestPointerLock());
       }
+    } catch {
+      canvas.requestPointerLock();
     }
   });
 
-  canvas.addEventListener("touchstart", (e) => {
-    const t = e.changedTouches[0];
-    if (!t) return;
-    const r = canvas.getBoundingClientRect();
-    const px = t.clientX - r.left;
-    if (px < r.width * 0.42) {
-      stick = { x: 0, y: 0 };
-    } else {
-      touchLook = { id: t.identifier, x: t.clientX, y: t.clientY };
+  function applyLook(dx: number, dy: number, sens: number) {
+    yaw -= dx * sens;
+    pitch -= dy * sens;
+    const lim = Math.PI / 2 - 0.04;
+    pitch = Math.max(-lim, Math.min(lim, pitch));
+  }
+
+  function refreshStickFromPointers() {
+    for (const p of pointers.values()) {
+      if (p.kind !== "move") continue;
+      stick.x = Math.max(-1, Math.min(1, (p.x - p.ox) / 56));
+      stick.y = Math.max(-1, Math.min(1, -(p.y - p.oy) / 56));
+      return;
     }
-  }, { passive: true });
-  canvas.addEventListener("touchmove", (e) => {
-    const r = canvas.getBoundingClientRect();
-    for (const t of Array.from(e.changedTouches)) {
-      const px = t.clientX - r.left;
-      if (touchLook && t.identifier === touchLook.id) {
-        yaw -= (t.clientX - touchLook.x) * 0.004;
-        pitch -= (t.clientY - touchLook.y) * 0.004;
-        const lim = Math.PI / 2 - 0.04;
-        pitch = Math.max(-lim, Math.min(lim, pitch));
-        touchLook.x = t.clientX;
-        touchLook.y = t.clientY;
-      } else if (px < r.width * 0.42) {
-        const cxn = r.width * 0.18;
-        const cy = r.height * 0.72;
-        stick.x = Math.max(-1, Math.min(1, (t.clientX - r.left - cxn) / 56));
-        stick.y = Math.max(-1, Math.min(1, -(t.clientY - r.top - cy) / 56));
-      }
-    }
-  }, { passive: true });
-  canvas.addEventListener("touchend", () => {
-    touchLook = null;
     stick = { x: 0, y: 0 };
+  }
+
+  canvas.addEventListener("pointerdown", (e) => {
+    if (mode !== "walk") return;
+    if (e.pointerType === "mouse") return;
+    e.preventDefault();
+    const r = canvas.getBoundingClientRect();
+    const left = e.clientX - r.left < r.width * 0.46;
+    pointers.set(e.pointerId, {
+      kind: left ? "move" : "look",
+      x: e.clientX,
+      y: e.clientY,
+      ox: e.clientX,
+      oy: e.clientY,
+    });
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch {
+      /* iOS */
+    }
+    refreshStickFromPointers();
+    onChange();
   });
+  canvas.addEventListener("pointermove", (e) => {
+    const p = pointers.get(e.pointerId);
+    if (!p) return;
+    if (p.kind === "look") {
+      applyLook(e.clientX - p.x, e.clientY - p.y, 0.004);
+    }
+    p.x = e.clientX;
+    p.y = e.clientY;
+    if (p.kind === "move") refreshStickFromPointers();
+  });
+  function endPointer(id: number) {
+    pointers.delete(id);
+    refreshStickFromPointers();
+    onChange();
+  }
+  canvas.addEventListener("pointerup", (e) => endPointer(e.pointerId));
+  canvas.addEventListener("pointercancel", (e) => endPointer(e.pointerId));
 
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
@@ -388,13 +414,16 @@ export function mountEngine(
   document.addEventListener("pointerlockchange", onLockChange);
 
   function resize() {
-    const w = canvas.clientWidth || 1280;
-    const h = canvas.clientHeight || 720;
+    const vv = window.visualViewport;
+    const w = Math.round(vv?.width || canvas.clientWidth || 1280);
+    const h = Math.round(vv?.height || canvas.clientHeight || 720);
     renderer.setSize(w, h, false);
-    camera.aspect = w / h;
+    camera.aspect = w / Math.max(1, h);
     camera.updateProjectionMatrix();
   }
   window.addEventListener("resize", resize);
+  window.visualViewport?.addEventListener("resize", resize);
+  window.visualViewport?.addEventListener("scroll", resize);
   resize();
   canvas.addEventListener(
     "wheel",
@@ -473,7 +502,7 @@ export function mountEngine(
       z: FLOOR_Z[floor],
       yaw,
       speed,
-      locked,
+      locked: locked || (mode === "walk" && touchWalk()),
       labels,
       shotId: mode === "shot" ? shotId : null,
     };
@@ -519,6 +548,8 @@ export function mountEngine(
     window.removeEventListener("keydown", onKeyDown);
     window.removeEventListener("keyup", onKeyUp);
     window.removeEventListener("resize", resize);
+    window.visualViewport?.removeEventListener("resize", resize);
+    window.visualViewport?.removeEventListener("scroll", resize);
     document.removeEventListener("mousemove", onMouse);
     document.removeEventListener("pointerlockchange", onLockChange);
     world.dispose();
@@ -536,6 +567,9 @@ export function mountEngine(
     setLabels: (v) => {
       labels = v;
       onChange();
+    },
+    setStick: (sx, sy) => {
+      stick = { x: Math.max(-1, Math.min(1, sx)), y: Math.max(-1, Math.min(1, sy)) };
     },
     resize,
     dispose,

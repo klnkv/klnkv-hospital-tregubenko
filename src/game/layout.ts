@@ -226,7 +226,7 @@ const BLOCKERS: Rect[] = [
 ];
 
 export const DOOR_GAP = 1.2;
-export const WALL_TH = 0.28;
+export const WALL_TH = 0.42;
 
 type Edge = "N" | "S" | "E" | "W";
 
@@ -375,14 +375,15 @@ export function solidsOn(floor: FloorId): Rect[] {
 }
 
 export function inVolume(floor: FloorId, x: number, y: number): boolean {
-  for (const r of roomsOn(floor)) {
-    if (contains(r, x, y, 0)) return true;
-  }
-  for (const c of corridorsOn(floor)) {
-    if (contains(c, x, y, 0)) return true;
-  }
+  const inner = WALL_TH * 0.45;
   for (const p of portalsOn(floor)) {
     if (contains(p, x, y, 0)) return true;
+  }
+  for (const r of roomsOn(floor)) {
+    if (contains(r, x, y, inner)) return true;
+  }
+  for (const c of corridorsOn(floor)) {
+    if (contains(c, x, y, 0.02)) return true;
   }
   if (floor === "R") {
     const inCourt = x > -18 && x < 18 && y > -14 && y < 14;
@@ -399,9 +400,13 @@ export function hitsSolid(floor: FloorId, x: number, y: number, rad: number): bo
   return false;
 }
 
-export function isWalkable(floor: FloorId, x: number, y: number, pad = 0.28): boolean {
-  if (hitsSolid(floor, x, y, pad)) return false;
+export function canStand(floor: FloorId, x: number, y: number, rad = 0.28): boolean {
+  if (hitsSolid(floor, x, y, rad)) return false;
   return inVolume(floor, x, y);
+}
+
+export function isWalkable(floor: FloorId, x: number, y: number, pad = 0.28): boolean {
+  return canStand(floor, x, y, pad);
 }
 
 export function cx(r: Rect): number {

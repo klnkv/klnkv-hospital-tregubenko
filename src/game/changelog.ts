@@ -13,6 +13,11 @@ export type LookDevEdit = {
 
 export const LOOKDEV_EDITS: LookDevEdit[] = [
   {
+    at: "2026-09-11T01:35:00+03:00",
+    where: "iPad + стены",
+    title: "Прогулка на планшете без pointer lock; стены непроходимы",
+  },
+  {
     at: "2026-09-09T22:59:00+03:00",
     where: "прогулка",
     title: "Контроллер как в Unity: капсула, skin, скольжение по стенам, шаг 1/60",
