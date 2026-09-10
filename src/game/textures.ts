@@ -505,8 +505,8 @@ export function makeSign(text: string, w = 1024, h = 256): THREE.CanvasTexture {
 }
 
 export function makeDoorPlate(num: string, title: string, extra = ""): THREE.CanvasTexture {
-  const w = 768;
-  const h = 512;
+  const w = 256;
+  const h = 176;
   const c = document.createElement("canvas");
   c.width = w;
   c.height = h;
@@ -514,56 +514,56 @@ export function makeDoorPlate(num: string, title: string, extra = ""): THREE.Can
   ctx.fillStyle = "#8a8070";
   ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = "#ece6da";
-  ctx.fillRect(14, 14, w - 28, h - 28);
+  ctx.fillRect(4, 4, w - 8, h - 8);
   ctx.strokeStyle = "#6a5e4e";
-  ctx.lineWidth = 4;
-  ctx.strokeRect(22, 22, w - 44, h - 44);
+  ctx.lineWidth = 2;
+  ctx.strokeRect(8, 8, w - 16, h - 16);
 
   ctx.fillStyle = "#1c1814";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const numSize = num.length > 3 ? 118 : 136;
+  const numSize = num.length > 3 ? 36 : 42;
   ctx.font = `700 ${numSize}px "IBM Plex Sans", "Noto Sans", sans-serif`;
-  ctx.fillText(num, w / 2, 128);
+  ctx.fillText(num, w / 2, 42);
 
   ctx.strokeStyle = "#b0a494";
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(64, 210);
-  ctx.lineTo(w - 64, 210);
+  ctx.moveTo(20, 68);
+  ctx.lineTo(w - 20, 68);
   ctx.stroke();
 
-  let size = 36;
+  let size = 16;
   ctx.font = `500 ${size}px "IBM Plex Sans", "Noto Sans", sans-serif`;
-  const maxW = w - 96;
-  while (size > 18 && ctx.measureText(title).width > maxW) {
+  const maxW = w - 28;
+  while (size > 11 && ctx.measureText(title).width > maxW) {
     size -= 1;
     ctx.font = `500 ${size}px "IBM Plex Sans", "Noto Sans", sans-serif`;
   }
   ctx.fillStyle = "#2a241c";
-  ctx.fillText(title, w / 2, 268);
+  ctx.fillText(title, w / 2, 88);
 
   ctx.fillStyle = "#f7f2ea";
-  ctx.fillRect(56, 330, w - 112, 118);
+  ctx.fillRect(18, 108, w - 36, 44);
   ctx.strokeStyle = "#c4b8a8";
-  ctx.setLineDash([10, 8]);
-  ctx.lineWidth = 2;
-  ctx.strokeRect(56, 330, w - 112, 118);
+  ctx.setLineDash([5, 4]);
+  ctx.lineWidth = 1;
+  ctx.strokeRect(18, 108, w - 36, 44);
   ctx.setLineDash([]);
   if (extra) {
-    let eSize = 32;
+    let eSize = 14;
     ctx.font = `400 ${eSize}px "IBM Plex Sans", "Noto Sans", sans-serif`;
-    while (eSize > 16 && ctx.measureText(extra).width > maxW) {
+    while (eSize > 10 && ctx.measureText(extra).width > maxW) {
       eSize -= 1;
       ctx.font = `400 ${eSize}px "IBM Plex Sans", "Noto Sans", sans-serif`;
     }
     ctx.fillStyle = "#1c1814";
-    ctx.fillText(extra, w / 2, 390);
+    ctx.fillText(extra, w / 2, 130);
   }
 
   const plate = new THREE.CanvasTexture(c);
   plate.colorSpace = THREE.SRGBColorSpace;
-  plate.anisotropy = 8;
+  plate.anisotropy = 4;
   return plate;
 }
 

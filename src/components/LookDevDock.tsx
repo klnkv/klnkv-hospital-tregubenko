@@ -5,6 +5,7 @@ import { publicUrl } from "@/game/constants";
 type RemoteStamp = { builtAt: string; release?: string };
 
 const LOCAL_BUILT = import.meta.env.VITE_BUILD_AT ?? LOOKDEV_EDITS[0]?.at ?? "";
+const RELOAD_KEY = "lookdev-reloaded";
 
 function kyivClock(iso: string): string {
   if (!iso) return "—";
@@ -14,6 +15,7 @@ function kyivClock(iso: string): string {
 export function LookDevDock({ placement = "hud" }: { placement?: "title" | "hud" }) {
   const [open, setOpen] = useState(false);
   const [remoteAt, setRemoteAt] = useState<string | null>(null);
+  const [remoteRelease, setRemoteRelease] = useState<string | null>(null);
 
   useEffect(() => {
     let stop = false;
@@ -24,7 +26,10 @@ export function LookDevDock({ placement = "hud" }: { placement?: "title" | "hud"
         });
         if (!res.ok) return;
         const data = (await res.json()) as RemoteStamp;
-        if (!stop && data.builtAt) setRemoteAt(data.builtAt);
+        if (!stop && data.builtAt) {
+          setRemoteAt(data.builtAt);
+          setRemoteRelease(data.release ?? null);
+        }
       } catch {
         /* offline / first paint */
       }
@@ -37,16 +42,26 @@ export function LookDevDock({ placement = "hud" }: { placement?: "title" | "hud"
     };
   }, []);
 
-  const newer =
-    !!remoteAt &&
-    !!LOCAL_BUILT &&
-    new Date(remoteAt).getTime() - new Date(LOCAL_BUILT).getTime() > 15_000;
+  const alreadyReloaded =
+    typeof sessionStorage !== "undefined" && sessionStorage.getItem(RELOAD_KEY) === LOOKDEV_RELEASE;
+  const newer = !!remoteRelease && remoteRelease !== LOOKDEV_RELEASE && !alreadyReloaded;
 
   return (
     <>
       <button
         type="button"
-        onClick={() => (newer ? window.location.reload() : setOpen(true))}
+        onClick={() => {
+          if (newer) {
+            try {
+              sessionStorage.setItem(RELOAD_KEY, LOOKDEV_RELEASE);
+            } catch {
+              /* private mode */
+            }
+            window.location.reload();
+            return;
+          }
+          setOpen(true);
+        }}
         className={
           "absolute z-30 max-w-[min(100%-1.5rem,16rem)] rounded-md border px-3 py-2 text-left shadow-lg " +
           (placement === "title"
