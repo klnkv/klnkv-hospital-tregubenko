@@ -591,7 +591,7 @@ export function createWorld(): WorldHandle {
     walnut: new Instancer(box, walnutM, 240, interior),
     metal: new Instancer(box, metalM, 700, interior),
     linen: new Instancer(box, linen, 280, interior),
-    cloth: new Instancer(box, clothM, 40, interior),
+    cloth: new Instancer(box, clothM, 48, interior),
     napkin: new Instancer(box, napkinM, 24, interior),
     velvet: new Instancer(box, velvetM, 100, interior),
     rug: new Instancer(box, rugM, 4, interior),
@@ -604,7 +604,7 @@ export function createWorld(): WorldHandle {
     light: new Instancer(box, emissiveWarm, 220, interior),
     lightCool: new Instancer(box, emissiveCool, 60, interior),
     glass: new Instancer(box, glassDark, 180, interior),
-    crystal: new Instancer(box, crystalM, 40, interior),
+    crystal: new Instancer(box, crystalM, 60, interior),
     glassLit: new Instancer(winGeo, glassNight, 220, interior),
     cylMetal: new Instancer(cyl, metalM, 80, interior),
     cylDark: new Instancer(cyl, darkMetal, 80, interior),
@@ -858,9 +858,9 @@ export function createWorld(): WorldHandle {
       add(B.wood, 0, 0.36, -d * 0.12, 1.5, 0.7, 0.08);
       add(B.dark, 0, 0.5, 0.35, 0.42, 0.9, 0.42);
       add(B.wood, w * 0.32, 1.0, 0, 0.4, 2.0, 1.4);
-    } else if (r.floor === "F1" && r.id === "WW2") {
+    } else if (r.floor === "F1" && (r.slot === "WW2" || r.id === "F1-DINING")) {
       furnishDining(add, w, d, y, mx, mz);
-    } else if (r.floor === "F1" && r.id === "WW1") {
+    } else if (r.floor === "F1" && (r.slot === "WW1" || r.id === "F1-KITCHEN")) {
       furnishKitchen(add, w, d, y, mx, mz);
     } else if (t === "CONF" || t === "DINING") {
       add(B.wood, 0, 0.74, 0, Math.min(w * 0.7, 5.2), 0.08, Math.min(d * 0.35, 1.6));
@@ -909,7 +909,11 @@ export function createWorld(): WorldHandle {
       }
       add(B.dark, w * 0.22, 1.2, 0, 1.3, 2.4, 1.3);
     }
-    add(B.light, 0, CLEAR_H[r.floor] - 0.08, 0, Math.min(w * 0.4, 2.4), 0.05, 0.4);
+    const skipLamp =
+      r.floor === "F1" && (r.slot === "WW2" || r.slot === "WW1" || r.id === "F1-DINING" || r.id === "F1-KITCHEN");
+    if (!skipLamp) {
+      add(B.light, 0, CLEAR_H[r.floor] - 0.08, 0, Math.min(w * 0.4, 2.4), 0.05, 0.4);
+    }
   }
 
   type AddFn = (
@@ -943,12 +947,22 @@ export function createWorld(): WorldHandle {
     add(B.plaster, 0, h * 0.5, sWall, w - 0.08, h, 0.06);
     add(B.plaster, eWall, h * 0.5, 0, 0.06, h, d - 0.08);
     add(B.plaster, wWall, h * 0.5, 0, 0.06, h, d - 0.08);
+    add(B.cloth, 0, 2.22, nWall + 0.05, w - 0.4, 1.92, 0.03);
+    add(B.cloth, eWall - 0.05, 2.22, 0, 0.03, 1.92, d - 0.5);
+    add(B.cloth, -2.2, 2.22, sWall - 0.05, 6.0, 1.92, 0.03);
+    add(B.cloth, 2.2, 2.22, sWall - 0.05, 6.0, 1.92, 0.03);
 
     add(B.walnut, 0, 0.58, nWall + 0.04, w - 0.2, 1.16, 0.08);
     add(B.walnut, eWall - 0.04, 0.58, 0, 0.08, 1.16, d - 0.35);
     add(B.walnut, wWall + 0.04, 0.58, 0, 0.08, 1.16, d - 0.35);
     add(B.walnut, -2.2, 0.58, sWall - 0.04, 6.2, 1.16, 0.08);
     add(B.walnut, 2.2, 0.58, sWall - 0.04, 6.2, 1.16, 0.08);
+    for (const dx of [-4.2, -1.4, 1.4, 4.2]) {
+      add(B.walnut, dx, 0.58, nWall + 0.1, 1.85, 0.92, 0.02);
+    }
+    for (const dz of [-3.2, -1.1, 1.1, 3.2]) {
+      add(B.walnut, eWall - 0.1, 0.58, dz, 0.02, 0.92, 1.6);
+    }
 
     add(B.walnut, 0, 0.06, nWall + 0.05, w - 0.15, 0.12, 0.1);
     add(B.walnut, 0, 0.06, sWall - 0.05, w - 0.15, 0.12, 0.1);
@@ -995,9 +1009,13 @@ export function createWorld(): WorldHandle {
 
     add(B.rug, 0, 0.03, 0.15, 5.4, 0.02, 4.2);
 
-    add(B.walnut, 0, 0.36, 0.28, 2.85, 0.7, 1.22);
-    add(B.walnut, 0, 0.74, 0.28, 3.05, 0.07, 1.38);
-    add(B.cloth, 0, 0.8, 0.28, 2.96, 0.03, 1.32);
+    add(B.walnut, 0, 0.68, 0.28, 2.9, 0.12, 1.28);
+    add(B.walnut, 0, 0.76, 0.28, 3.08, 0.06, 1.4);
+    add(B.cloth, 0, 0.81, 0.28, 3.0, 0.03, 1.34);
+    add(B.walnut, -1.28, 0.34, -0.22, 0.09, 0.68, 0.09);
+    add(B.walnut, 1.28, 0.34, -0.22, 0.09, 0.68, 0.09);
+    add(B.walnut, -1.28, 0.34, 0.78, 0.09, 0.68, 0.09);
+    add(B.walnut, 1.28, 0.34, 0.78, 0.09, 0.68, 0.09);
 
     armchair(add, -0.95, -0.58);
     armchair(add, 0, -0.58);
@@ -1073,9 +1091,15 @@ export function createWorld(): WorldHandle {
 
     add(B.brass, 0, 2.92, 0.28, 1.7, 0.05, 0.6);
     add(B.brass, 0, 3.1, 0.28, 0.12, 0.32, 0.12);
+    B.cylBrass.add(mx, y + 2.98, mz + 0.28, 0.07, 0.18, 0.07);
     add(B.light, -0.52, 2.76, 0.28, 0.24, 0.08, 0.24);
     add(B.light, 0.52, 2.76, 0.28, 0.24, 0.08, 0.24);
     add(B.light, 0, 2.76, 0.28, 0.2, 0.08, 0.2);
+    add(B.light, -0.52, 2.52, 0.28, 0.16, 0.06, 0.16);
+    add(B.light, 0.52, 2.52, 0.28, 0.16, 0.06, 0.16);
+    for (const dx of [-0.62, -0.2, 0.2, 0.62]) {
+      add(B.crystal, dx, 2.58, 0.28, 0.025, 0.28, 0.025);
+    }
 
     diningLight.visible = true;
     diningLight.position.set(mx, y + 2.7, mz + 0.28);
@@ -1168,7 +1192,7 @@ export function createWorld(): WorldHandle {
   }
 
   function placeOuterWindow(r: RoomDef, y: number) {
-    if (r.floor === "F1" && r.id === "WW2") return;
+    if (r.floor === "F1" && (r.slot === "WW2" || r.id === "F1-DINING")) return;
     const wy = y + 1.45;
     if (r.y1 > 33) {
       B.glassLit.add(cx(r), wy, -(r.y1) + 0.12, 1, 1, 1);
@@ -1241,8 +1265,8 @@ export function createWorld(): WorldHandle {
       const d = rd(r);
       const isNew = mx > NEW_WING_X;
       const fm = floor === "B1" ? B.floorCon : isNew ? B.floorNew : B.floorOld;
-      if (floor === "F1" && r.id === "WW2") B.parquet.add(mx, y + 0.02, mz, w, 0.04, d);
-      else if (floor === "F1" && r.id === "WW1") B.tile.add(mx, y + 0.02, mz, w, 0.04, d);
+      if (floor === "F1" && (r.slot === "WW2" || r.id === "F1-DINING")) B.parquet.add(mx, y + 0.02, mz, w, 0.04, d);
+      else if (floor === "F1" && (r.slot === "WW1" || r.id === "F1-KITCHEN")) B.tile.add(mx, y + 0.02, mz, w, 0.04, d);
       else fm.add(mx, y + 0.02, mz, w, 0.04, d);
       B.ceil.add(mx, y + h - 0.02, mz, w, 0.04, d);
 
