@@ -618,69 +618,77 @@ export function parquet() {
 
 export function walnut() {
   return canvasTex(
-    "walnut-512",
+    "walnut-v3",
     512,
     (ctx, s) => {
-      ctx.fillStyle = "#4a301c";
+      const g = ctx.createLinearGradient(0, 0, s, 0);
+      g.addColorStop(0, "#3a2414");
+      g.addColorStop(0.5, "#6a4328");
+      g.addColorStop(1, "#3e2816");
+      ctx.fillStyle = g;
       ctx.fillRect(0, 0, s, s);
       for (let y = 0; y < s; y++) {
-        const wiggle = Math.sin(y * 0.07) * 6 + Math.sin(y * 0.019) * 14;
-        const v = 0.04 + Math.sin(y * 0.11) * 0.03;
-        ctx.fillStyle = `rgba(22,10,4,${v})`;
+        const wiggle = Math.sin(y * 0.045) * 18 + Math.sin(y * 0.013) * 28;
+        const v = 0.06 + Math.sin(y * 0.09) * 0.05;
+        ctx.fillStyle = `rgba(18,8,2,${v})`;
         ctx.fillRect(0, y, s, 1);
-        ctx.fillStyle = `rgba(140,90,40,${0.03 + (y % 7 === 0 ? 0.04 : 0)})`;
+        ctx.fillStyle = `rgba(170,110,50,${0.05 + (y % 5 === 0 ? 0.06 : 0)})`;
         ctx.fillRect(wiggle, y, s, 1);
       }
-      for (let i = 0; i < 28; i++) {
-        ctx.strokeStyle = `rgba(30,16,8,${0.12 + Math.random() * 0.12})`;
-        ctx.lineWidth = 0.8;
+      for (let i = 0; i < 46; i++) {
+        ctx.strokeStyle = `rgba(24,12,6,${0.16 + Math.random() * 0.16})`;
+        ctx.lineWidth = 0.6 + Math.random() * 1.4;
         ctx.beginPath();
         const x = Math.random() * s;
         ctx.moveTo(x, 0);
-        ctx.bezierCurveTo(x + 8, s * 0.3, x - 10, s * 0.7, x + 4, s);
+        ctx.bezierCurveTo(x + 18, s * 0.25, x - 22, s * 0.62, x + 6, s);
         ctx.stroke();
       }
-      noise(ctx, s, 12);
+      noise(ctx, s, 16);
     },
-    3,
+    2,
   );
 }
 
 export function damask() {
   return canvasTex(
-    "damask-v2",
+    "damask-v3",
     512,
     (ctx, s) => {
-      ctx.fillStyle = "#efe6d2";
+      ctx.fillStyle = "#e7dcc4";
       ctx.fillRect(0, 0, s, s);
-      for (let y = 0; y < s; y++) {
-        ctx.fillStyle = `rgba(180,160,120,${0.03 + (y % 2) * 0.02})`;
-        ctx.fillRect(0, y, s, 1);
-      }
-      const cell = 64;
+      const wash = ctx.createRadialGradient(s * 0.4, s * 0.35, 20, s * 0.5, s * 0.5, s * 0.7);
+      wash.addColorStop(0, "rgba(255,248,230,0.35)");
+      wash.addColorStop(1, "rgba(120,90,50,0.12)");
+      ctx.fillStyle = wash;
+      ctx.fillRect(0, 0, s, s);
+      const cell = 96;
       for (let gy = -cell; gy < s + cell; gy += cell) {
         for (let gx = -cell; gx < s + cell; gx += cell) {
           const cx = gx + cell / 2;
           const cy = gy + cell / 2;
-          ctx.strokeStyle = "rgba(160,138,96,0.22)";
-          ctx.lineWidth = 1.2;
+          ctx.strokeStyle = "rgba(120,88,48,0.45)";
+          ctx.lineWidth = 1.6;
           ctx.beginPath();
-          ctx.moveTo(cx, gy + 8);
-          ctx.lineTo(gx + cell - 8, cy);
-          ctx.lineTo(cx, gy + cell - 8);
-          ctx.lineTo(gx + 8, cy);
-          ctx.closePath();
+          ctx.moveTo(cx, cy - 34);
+          ctx.bezierCurveTo(cx + 22, cy - 18, cx + 28, cy + 8, cx, cy + 34);
+          ctx.bezierCurveTo(cx - 28, cy + 8, cx - 22, cy - 18, cx, cy - 34);
           ctx.stroke();
-          ctx.fillStyle = "rgba(168,142,98,0.1)";
+          ctx.fillStyle = "rgba(150,112,62,0.22)";
           ctx.beginPath();
-          ctx.ellipse(cx, cy, 7, 11, 0, 0, Math.PI * 2);
+          ctx.ellipse(cx, cy, 10, 16, 0, 0, Math.PI * 2);
           ctx.fill();
           ctx.beginPath();
-          ctx.ellipse(cx, cy, 11, 5, 0, 0, Math.PI * 2);
+          ctx.ellipse(cx, cy - 18, 8, 6, 0, 0, Math.PI * 2);
+          ctx.ellipse(cx, cy + 18, 8, 6, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "rgba(90,62,32,0.28)";
+          ctx.beginPath();
+          ctx.arc(cx, cy, 3.2, 0, Math.PI * 2);
           ctx.fill();
         }
       }
-      noise(ctx, s, 8);
+      noise(ctx, s, 10);
     },
     2,
   );
@@ -716,23 +724,27 @@ export function napkin() {
 
 export function velvet() {
   return canvasTex(
-    "velvet-pile",
+    "velvet-pile-v2",
     512,
     (ctx, s) => {
-      ctx.fillStyle = "#1e241e";
+      const base = ctx.createLinearGradient(0, 0, 0, s);
+      base.addColorStop(0, "#243028");
+      base.addColorStop(0.5, "#141c16");
+      base.addColorStop(1, "#0c120e");
+      ctx.fillStyle = base;
       ctx.fillRect(0, 0, s, s);
-      for (let i = 0; i < 2800; i++) {
-        const g = 38 + Math.random() * 36;
-        ctx.fillStyle = `rgba(${g * 0.7},${g},${g * 0.72},0.18)`;
-        ctx.fillRect(Math.random() * s, Math.random() * s, 1.5, 3 + Math.random() * 3);
+      for (let i = 0; i < 4200; i++) {
+        const g = 30 + Math.random() * 50;
+        ctx.fillStyle = `rgba(${g * 0.65},${g},${g * 0.7},${0.12 + Math.random() * 0.16})`;
+        ctx.fillRect(Math.random() * s, Math.random() * s, 1.2, 4 + Math.random() * 6);
       }
-      const rad = ctx.createRadialGradient(s * 0.45, s * 0.35, 8, s * 0.5, s * 0.45, s * 0.7);
-      rad.addColorStop(0, "rgba(90,110,80,0.16)");
-      rad.addColorStop(0.55, "rgba(20,28,20,0.05)");
-      rad.addColorStop(1, "rgba(6,8,6,0.28)");
+      const rad = ctx.createRadialGradient(s * 0.38, s * 0.3, 10, s * 0.5, s * 0.45, s * 0.75);
+      rad.addColorStop(0, "rgba(140,170,120,0.22)");
+      rad.addColorStop(0.5, "rgba(20,28,20,0.04)");
+      rad.addColorStop(1, "rgba(0,0,0,0.35)");
       ctx.fillStyle = rad;
       ctx.fillRect(0, 0, s, s);
-      noise(ctx, s, 10);
+      noise(ctx, s, 12);
     },
     2,
   );

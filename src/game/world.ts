@@ -121,8 +121,10 @@ export function createWorld(): WorldHandle {
 
   const box = trackG(new THREE.BoxGeometry(1, 1, 1));
   const cyl = trackG(new THREE.CylinderGeometry(1, 1, 1, 12));
+  const cylFine = trackG(new THREE.CylinderGeometry(1, 1, 1, 24));
   const plane = trackG(new THREE.PlaneGeometry(1, 1));
   const sphere = trackG(new THREE.SphereGeometry(1, 12, 8));
+  const sphereFine = trackG(new THREE.SphereGeometry(1, 22, 16));
 
   const plasterOld = trackM(mat("#b7b09f", { map: tex.plaster("#b7b09f"), rough: 0.72, env: 0.55 }));
   const plasterNew = trackM(mat("#c5c8c6", { map: tex.plaster("#c5c8c6", 10), rough: 0.62, env: 0.5 }));
@@ -612,9 +614,15 @@ export function createWorld(): WorldHandle {
     cylCopper: new Instancer(cyl, copperM, 50, interior),
     cylBrass: new Instancer(cyl, brassM, 30, interior),
     cylSilver: new Instancer(cyl, silverM, 40, interior),
-    cylChina: new Instancer(cyl, chinaM, 40, interior),
+    cylChina: new Instancer(cylFine, chinaM, 64, interior),
+    cylWalnut: new Instancer(cylFine, walnutM, 48, interior),
+    cylVelvet: new Instancer(cylFine, velvetM, 24, interior),
+    cylCrystal: new Instancer(cylFine, crystalM, 24, interior),
     cylTomato: new Instancer(sphere, tomatoM, 8, interior),
-    sphereSilver: new Instancer(sphere, silverM, 16, interior),
+    sphereSilver: new Instancer(sphereFine, silverM, 16, interior),
+    sphereBrass: new Instancer(sphereFine, brassM, 16, interior),
+    sphereCrystal: new Instancer(sphereFine, crystalM, 16, interior),
+    sphereLight: new Instancer(sphereFine, emissiveWarm, 16, interior),
   };
 
   const diningSignM = trackM(mat("#d8d0c4", { map: tex.makeSign("ЭЛИТНАЯ СТОЛОВАЯ") }));
@@ -646,34 +654,34 @@ export function createWorld(): WorldHandle {
   interior.add(chefG);
   mesh(box, blackM, 0.12, 0.05, 0.06, 0.16, 0.08, 0.28, chefG);
   mesh(box, blackM, -0.12, 0.05, 0.06, 0.16, 0.08, 0.28, chefG);
-  mesh(box, darkMetal, 0.1, 0.42, 0.03, 0.18, 0.72, 0.2, chefG);
-  mesh(box, darkMetal, -0.1, 0.42, 0.03, 0.18, 0.72, 0.2, chefG);
-  mesh(box, whitesM, 0, 1.14, 0.02, 0.5, 0.62, 0.3, chefG);
-  mesh(box, linen, 0, 1.0, 0.18, 0.42, 0.55, 0.05, chefG);
-  mesh(box, whitesM, 0, 1.14, 0.2, 0.05, 0.5, 0.02, chefG);
-  mesh(box, darkMetal, 0, 0.82, 0.18, 0.44, 0.06, 0.06, chefG);
-  mesh(box, darkMetal, 0, 1.28, 0.21, 0.035, 0.035, 0.02, chefG);
-  mesh(box, darkMetal, 0, 1.12, 0.21, 0.035, 0.035, 0.02, chefG);
-  mesh(box, darkMetal, 0, 0.96, 0.21, 0.035, 0.035, 0.02, chefG);
-  mesh(box, whitesM, 0.32, 1.1, 0.06, 0.12, 0.55, 0.13, chefG);
-  mesh(box, whitesM, -0.32, 1.1, 0.08, 0.12, 0.55, 0.13, chefG);
-  mesh(box, skinM, 0.32, 0.78, 0.14, 0.1, 0.12, 0.1, chefG);
-  mesh(box, skinM, -0.32, 0.9, 0.22, 0.1, 0.1, 0.1, chefG);
+  mesh(cylFine, darkMetal, 0.1, 0.42, 0.02, 0.09, 0.72, 0.09, chefG);
+  mesh(cylFine, darkMetal, -0.1, 0.42, 0.02, 0.09, 0.72, 0.09, chefG);
+  mesh(cylFine, whitesM, 0, 1.16, 0.02, 0.22, 0.58, 0.16, chefG);
+  mesh(box, linen, 0, 1.02, 0.16, 0.36, 0.52, 0.04, chefG);
+  mesh(box, whitesM, 0, 1.14, 0.18, 0.04, 0.48, 0.02, chefG);
+  mesh(box, darkMetal, 0, 0.82, 0.16, 0.38, 0.04, 0.04, chefG);
+  mesh(sphereFine, darkMetal, 0, 1.28, 0.18, 0.028, 0.028, 0.02, chefG);
+  mesh(sphereFine, darkMetal, 0, 1.12, 0.18, 0.028, 0.028, 0.02, chefG);
+  mesh(sphereFine, darkMetal, 0, 0.96, 0.18, 0.028, 0.028, 0.02, chefG);
+  mesh(cylFine, whitesM, 0.3, 1.08, 0.06, 0.055, 0.52, 0.055, chefG);
+  mesh(cylFine, whitesM, -0.3, 1.08, 0.08, 0.055, 0.52, 0.055, chefG);
+  mesh(sphereFine, skinM, 0.3, 0.78, 0.12, 0.055, 0.05, 0.055, chefG);
+  mesh(sphereFine, skinM, -0.32, 0.9, 0.2, 0.05, 0.045, 0.05, chefG);
   mesh(box, napkinM, -0.32, 0.98, 0.28, 0.16, 0.04, 0.18, chefG);
-  mesh(sphere, tomatoM, -0.32, 1.06, 0.3, 0.055, 0.05, 0.055, chefG);
+  mesh(sphereFine, tomatoM, -0.32, 1.06, 0.3, 0.055, 0.05, 0.055, chefG);
   mesh(box, calyxM, -0.32, 1.12, 0.3, 0.04, 0.02, 0.04, chefG);
   mesh(box, silverM, 0.32, 0.74, 0.3, 0.018, 0.018, 0.28, chefG);
   mesh(box, silverM, 0.32, 0.74, 0.46, 0.045, 0.01, 0.07, chefG);
   mesh(box, skinM, 0.28, 0.96, 0.42, 0.12, 0.04, 0.16, chefG);
   mesh(box, skinM, 0, 1.46, 0.02, 0.16, 0.12, 0.14, chefG);
-  mesh(sphere, skinM, 0, 1.58, 0.04, 0.14, 0.16, 0.14, chefG);
+  mesh(sphereFine, skinM, 0, 1.58, 0.04, 0.13, 0.15, 0.13, chefG);
   mesh(box, skinM, 0, 1.56, 0.16, 0.04, 0.04, 0.06, chefG);
   mesh(box, blackM, -0.05, 1.62, 0.15, 0.035, 0.02, 0.02, chefG);
   mesh(box, blackM, 0.05, 1.62, 0.15, 0.035, 0.02, 0.02, chefG);
   mesh(box, blackM, 0, 1.5, 0.16, 0.1, 0.025, 0.03, chefG);
   mesh(box, blackM, 0, 1.68, 0.0, 0.24, 0.06, 0.2, chefG);
-  mesh(cyl, whitesM, 0, 1.8, 0.02, 0.12, 0.2, 0.12, chefG);
-  mesh(sphere, whitesM, 0, 1.96, 0.02, 0.14, 0.1, 0.14, chefG);
+  mesh(cylFine, whitesM, 0, 1.8, 0.02, 0.12, 0.18, 0.12, chefG);
+  mesh(sphereFine, whitesM, 0, 1.96, 0.02, 0.13, 0.09, 0.13, chefG);
 
   const suitNavy = trackM(mat("#1c2430", { rough: 0.7 }));
   const suitChar = trackM(mat("#2a2c2e", { rough: 0.68 }));
@@ -695,14 +703,17 @@ export function createWorld(): WorldHandle {
     interior.add(g);
     const w = opts.wide;
     const t = opts.tall;
-    mesh(box, opts.body, 0, 0.72 * t, 0.04, 0.42 * w, 0.5 * t, 0.28, g);
-    mesh(box, opts.body, 0, 0.52 * t, 0.02, 0.4 * w, 0.18, 0.32, g);
-    mesh(box, opts.body, 0.16 * w, 0.78 * t, 0.12, 0.1, 0.38 * t, 0.1, g);
-    mesh(box, opts.body, -0.16 * w, 0.78 * t, 0.12, 0.1, 0.38 * t, 0.1, g);
-    mesh(box, opts.skin, 0.16 * w, 0.56 * t, 0.18, 0.08, 0.08, 0.08, g);
-    mesh(box, opts.skin, -0.16 * w, 0.56 * t, 0.18, 0.08, 0.08, 0.08, g);
-    mesh(sphere, opts.skin, 0, 1.08 * t, 0.06, 0.11 * w, 0.13, 0.11, g);
-    mesh(box, opts.hair, 0, 1.16 * t, 0.02, 0.2 * w, 0.05, 0.16, g);
+    mesh(cylFine, opts.body, 0, 0.78 * t, 0.02, 0.2 * w, 0.42 * t, 0.16, g);
+    const thighL = mesh(cylFine, opts.body, -0.1 * w, 0.5 * t, 0.22, 0.055, 0.28, 0.055, g);
+    const thighR = mesh(cylFine, opts.body, 0.1 * w, 0.5 * t, 0.22, 0.055, 0.28, 0.055, g);
+    thighL.rotation.x = Math.PI / 2;
+    thighR.rotation.x = Math.PI / 2;
+    mesh(cylFine, opts.body, 0.22 * w, 0.82 * t, 0.1, 0.045, 0.36 * t, 0.045, g);
+    mesh(cylFine, opts.body, -0.22 * w, 0.82 * t, 0.1, 0.045, 0.36 * t, 0.045, g);
+    mesh(sphereFine, opts.skin, 0.22 * w, 0.58 * t, 0.16, 0.05, 0.045, 0.05, g);
+    mesh(sphereFine, opts.skin, -0.22 * w, 0.58 * t, 0.16, 0.05, 0.045, 0.05, g);
+    mesh(sphereFine, opts.skin, 0, 1.08 * t, 0.06, 0.11 * w, 0.13, 0.11, g);
+    mesh(sphereFine, opts.hair, 0, 1.18 * t, 0.02, 0.12 * w, 0.06, 0.12, g);
     if (opts.bun) {
       mesh(sphere, opts.hair, 0, 1.22 * t, -0.04, 0.07, 0.06, 0.07, g);
       mesh(box, goldM, 0, 0.95 * t, 0.18, 0.08, 0.02, 0.08, g);
@@ -927,13 +938,24 @@ export function createWorld(): WorldHandle {
     rotY?: number,
   ) => void;
 
-  function armchair(add: AddFn, dx: number, dz: number) {
-    add(B.walnut, dx, 0.22, dz, 0.5, 0.36, 0.5);
-    add(B.velvet, dx, 0.46, dz, 0.54, 0.12, 0.54);
-    add(B.walnut, dx, 0.72, dz - 0.24, 0.5, 0.88, 0.08);
-    add(B.velvet, dx, 0.9, dz - 0.2, 0.54, 0.72, 0.1);
-    add(B.walnut, dx - 0.28, 0.58, dz, 0.06, 0.28, 0.42);
-    add(B.walnut, dx + 0.28, 0.58, dz, 0.06, 0.28, 0.42);
+  function armchair(dx: number, dz: number, y: number, mx: number, mz: number) {
+    const px = mx + dx;
+    const pz = mz + dz;
+    const feet: Array<[number, number]> = [
+      [-0.2, -0.16],
+      [0.2, -0.16],
+      [-0.2, 0.16],
+      [0.2, 0.16],
+    ];
+    for (const [lx, lz] of feet) {
+      B.cylWalnut.add(px + lx, y + 0.05, pz + lz, 0.042, 0.05, 0.042);
+      B.cylWalnut.add(px + lx, y + 0.24, pz + lz, 0.026, 0.34, 0.026);
+    }
+    B.cylVelvet.add(px, y + 0.44, pz, 0.26, 0.08, 0.24);
+    B.cylWalnut.add(px - 0.22, y + 0.78, pz - 0.18, 0.026, 0.58, 0.026);
+    B.cylWalnut.add(px + 0.22, y + 0.78, pz - 0.18, 0.026, 0.58, 0.026);
+    B.cylVelvet.add(px, y + 0.9, pz - 0.18, 0.22, 0.42, 0.04);
+    B.cylWalnut.add(px, y + 1.14, pz - 0.18, 0.2, 0.03, 0.03);
   }
 
   function furnishDining(add: AddFn, w: number, d: number, y: number, mx: number, mz: number) {
@@ -1012,30 +1034,31 @@ export function createWorld(): WorldHandle {
     add(B.walnut, 0, 0.68, 0.28, 2.9, 0.12, 1.28);
     add(B.walnut, 0, 0.76, 0.28, 3.08, 0.06, 1.4);
     add(B.cloth, 0, 0.81, 0.28, 3.0, 0.03, 1.34);
-    add(B.walnut, -1.28, 0.34, -0.22, 0.09, 0.68, 0.09);
-    add(B.walnut, 1.28, 0.34, -0.22, 0.09, 0.68, 0.09);
-    add(B.walnut, -1.28, 0.34, 0.78, 0.09, 0.68, 0.09);
-    add(B.walnut, 1.28, 0.34, 0.78, 0.09, 0.68, 0.09);
+    for (const [lx, lz] of [
+      [-1.28, -0.22],
+      [1.28, -0.22],
+      [-1.28, 0.78],
+      [1.28, 0.78],
+    ] as Array<[number, number]>) {
+      B.cylWalnut.add(mx + lx, y + 0.05, mz + lz, 0.055, 0.06, 0.055);
+      B.cylWalnut.add(mx + lx, y + 0.34, mz + lz, 0.038, 0.54, 0.038);
+    }
 
-    armchair(add, -0.95, -0.58);
-    armchair(add, 0, -0.58);
-    armchair(add, 0.95, -0.58);
+    armchair(-0.95, -0.58, y, mx, mz);
+    armchair(0, -0.58, y, mx, mz);
+    armchair(0.95, -0.58, y, mx, mz);
 
     const covers = [-0.92, 0, 0.92];
     for (const dx of covers) {
-      add(B.china, dx, 0.85, 0.02, 0.3, 0.016, 0.3);
-      add(B.china, dx, 0.87, 0.02, 0.2, 0.012, 0.2);
-      add(B.silver, dx, 0.92, 0.02, 0.22, 0.01, 0.22);
-      B.sphereSilver.add(mx + dx, y + 1.0, mz + 0.02, 0.115, 0.085, 0.115);
-      add(B.silver, dx, 1.1, 0.02, 0.035, 0.05, 0.035);
-      add(B.silver, dx, 1.16, 0.02, 0.07, 0.012, 0.03);
-      add(B.napkin, dx - 0.22, 0.845, 0.12, 0.16, 0.02, 0.16);
-      add(B.crystal, dx + 0.16, 0.98, 0.16, 0.045, 0.16, 0.045);
-      add(B.crystal, dx + 0.16, 1.08, 0.16, 0.055, 0.04, 0.055);
-      add(B.silver, dx - 0.22, 0.848, 0.08, 0.014, 0.008, 0.22);
-      add(B.silver, dx + 0.22, 0.848, 0.04, 0.012, 0.008, 0.2);
-      add(B.silver, dx + 0.28, 0.852, 0.1, 0.018, 0.01, 0.28);
-      add(B.silver, dx + 0.28, 0.86, -0.02, 0.03, 0.012, 0.055);
+      B.cylChina.add(mx + dx, y + 0.84, mz + 0.02, 0.16, 0.014, 0.16);
+      B.cylChina.add(mx + dx, y + 0.856, mz + 0.02, 0.11, 0.012, 0.11);
+      B.sphereSilver.add(mx + dx, y + 0.98, mz + 0.02, 0.11, 0.08, 0.11);
+      B.sphereSilver.add(mx + dx, y + 1.08, mz + 0.02, 0.028, 0.045, 0.028);
+      B.cylSilver.add(mx + dx - 0.2, y + 0.85, mz + 0.08, 0.008, 0.006, 0.11);
+      B.cylSilver.add(mx + dx + 0.2, y + 0.85, mz + 0.05, 0.006, 0.006, 0.1);
+      B.cylCrystal.add(mx + dx + 0.16, y + 0.9, mz + 0.16, 0.012, 0.1, 0.012);
+      B.sphereCrystal.add(mx + dx + 0.16, y + 1.0, mz + 0.16, 0.038, 0.042, 0.038);
+      add(B.napkin, dx - 0.2, 0.845, 0.14, 0.14, 0.012, 0.14);
     }
 
     add(B.silver, 0.72, 0.88, 0.48, 0.07, 0.05, 0.07);
@@ -1053,6 +1076,12 @@ export function createWorld(): WorldHandle {
     add(B.walnut, 0, 1.78, nWall + 0.18, 10.2, 1.22, 0.28);
     add(B.walnut, -3.4, 1.08, nWall + 0.28, 0.06, 1.12, 0.5);
     add(B.walnut, 3.4, 1.08, nWall + 0.28, 0.06, 1.12, 0.5);
+    for (const dx of [-4.5, -3.1, -1.7, -0.3, 1.1, 2.5, 3.9]) {
+      add(B.dark, dx, 0.52, nWall + 0.56, 1.05, 0.82, 0.02);
+    }
+    for (const dx of [-4.0, -2.2, -0.4, 1.4, 3.2]) {
+      add(B.dark, dx, 1.75, nWall + 0.34, 1.35, 0.9, 0.015);
+    }
     B.cylSilver.add(mx, y + 1.48, mz + nWall + 0.32, 0.16, 0.42, 0.16);
     B.cylSilver.add(mx, y + 1.72, mz + nWall + 0.32, 0.12, 0.1, 0.12);
     add(B.silver, 0.18, 1.38, nWall + 0.42, 0.12, 0.04, 0.04);
@@ -1080,26 +1109,25 @@ export function createWorld(): WorldHandle {
     add(B.silver, eWall - 0.16, 1.24, 1.05, 0.04, 0.06, 0.04);
     add(B.china, eWall - 0.16, 1.0, -1.0, 0.28, 0.04, 0.28);
 
-    add(B.brass, -4.8, 2.15, nWall + 0.12, 0.08, 0.28, 0.08);
-    add(B.light, -4.8, 2.0, nWall + 0.14, 0.12, 0.08, 0.12);
-    add(B.brass, 4.8, 2.15, nWall + 0.12, 0.08, 0.28, 0.08);
-    add(B.light, 4.8, 2.0, nWall + 0.14, 0.12, 0.08, 0.12);
-    add(B.brass, eWall - 0.12, 2.15, -2.6, 0.08, 0.28, 0.08);
-    add(B.light, eWall - 0.14, 2.0, -2.6, 0.12, 0.08, 0.12);
-    add(B.brass, eWall - 0.12, 2.15, 2.8, 0.08, 0.28, 0.08);
-    add(B.light, eWall - 0.14, 2.0, 2.8, 0.12, 0.08, 0.12);
+    B.cylBrass.add(mx - 4.8, y + 2.15, mz + nWall + 0.14, 0.035, 0.22, 0.035);
+    B.sphereLight.add(mx - 4.8, y + 2.0, mz + nWall + 0.16, 0.07, 0.07, 0.07);
+    B.cylBrass.add(mx + 4.8, y + 2.15, mz + nWall + 0.14, 0.035, 0.22, 0.035);
+    B.sphereLight.add(mx + 4.8, y + 2.0, mz + nWall + 0.16, 0.07, 0.07, 0.07);
+    B.cylBrass.add(mx + eWall - 0.14, y + 2.15, mz - 2.6, 0.035, 0.22, 0.035);
+    B.sphereLight.add(mx + eWall - 0.16, y + 2.0, mz - 2.6, 0.07, 0.07, 0.07);
+    B.cylBrass.add(mx + eWall - 0.14, y + 2.15, mz + 2.8, 0.035, 0.22, 0.035);
+    B.sphereLight.add(mx + eWall - 0.16, y + 2.0, mz + 2.8, 0.07, 0.07, 0.07);
 
-    add(B.brass, 0, 2.92, 0.28, 1.7, 0.05, 0.6);
-    add(B.brass, 0, 3.1, 0.28, 0.12, 0.32, 0.12);
-    B.cylBrass.add(mx, y + 2.98, mz + 0.28, 0.07, 0.18, 0.07);
-    add(B.light, -0.52, 2.76, 0.28, 0.24, 0.08, 0.24);
-    add(B.light, 0.52, 2.76, 0.28, 0.24, 0.08, 0.24);
-    add(B.light, 0, 2.76, 0.28, 0.2, 0.08, 0.2);
-    add(B.light, -0.52, 2.52, 0.28, 0.16, 0.06, 0.16);
-    add(B.light, 0.52, 2.52, 0.28, 0.16, 0.06, 0.16);
-    for (const dx of [-0.62, -0.2, 0.2, 0.62]) {
-      add(B.crystal, dx, 2.58, 0.28, 0.025, 0.28, 0.025);
+    add(B.brass, 0, 2.92, 0.28, 1.15, 0.04, 0.35);
+    B.cylBrass.add(mx, y + 3.05, mz + 0.28, 0.045, 0.28, 0.045);
+    B.sphereBrass.add(mx, y + 2.82, mz + 0.28, 0.08, 0.08, 0.08);
+    B.sphereLight.add(mx - 0.42, y + 2.68, mz + 0.28, 0.1, 0.1, 0.1);
+    B.sphereLight.add(mx + 0.42, y + 2.68, mz + 0.28, 0.1, 0.1, 0.1);
+    B.sphereLight.add(mx, y + 2.62, mz + 0.28, 0.08, 0.08, 0.08);
+    for (const dx of [-0.55, -0.18, 0.18, 0.55]) {
+      B.sphereCrystal.add(mx + dx, y + 2.48, mz + 0.28, 0.018, 0.05, 0.018);
     }
+    B.sphereBrass.add(mx, y + 2.2, mz + nWall + 0.1, 0.38, 0.5, 0.025);
 
     diningLight.visible = true;
     diningLight.position.set(mx, y + 2.7, mz + 0.28);
