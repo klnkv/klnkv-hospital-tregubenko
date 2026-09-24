@@ -13,6 +13,8 @@ import {
 import { CATALOG, doorNumber } from "./catalog";
 import { SHOTS } from "./shots";
 import * as tex from "./textures";
+import type { DayPhase, Precip, SeasonId, WeatherId } from "./atmosphere";
+import { foliage, snowCover } from "./atmosphere";
 import type { FloorId, RoomDef, RoomType } from "./types";
 
 const _tmp = new THREE.Object3D();
@@ -106,7 +108,8 @@ export type WorldHandle = {
   setMassingVisible: (v: boolean) => void;
   setVehicles: (mode: "all" | "none" | "car" | "taxi") => void;
   attachRain: (cam: THREE.Camera) => void;
-  setRainVisible: (v: boolean, lens?: boolean) => void;
+  setPrecip: (kind: Precip, lens?: boolean) => void;
+  setClimate: (season: SeasonId, weather: WeatherId, phase: DayPhase) => void;
   tick: (dt: number, cam: THREE.Vector3) => void;
   dispose: () => void;
 };
@@ -473,6 +476,21 @@ export function createWorld(): WorldHandle {
   mesh(box, darkMetal, 18, 23.4, 24, 10, 2.8, 7, roofDress);
 
   mesh(box, grassM, 0, 0.02, 0, 35.2, 0.04, 27.2, root);
+  const snowM = trackM(
+    new THREE.MeshStandardMaterial({
+      color: 0xf4f7fb,
+      roughness: 0.92,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+    }),
+  );
+  const snowPads = [
+    mesh(box, snowM, 0, 0.07, 0, 36, 0.03, 28, root),
+    mesh(box, snowM, 0, 0.06, 62, 26, 0.03, 48, root),
+    mesh(box, snowM, -28, 0.05, 50, 36, 0.03, 70, root),
+    mesh(box, snowM, 28, 0.05, 50, 36, 0.03, 70, root),
+  ];
   const canopyM = trackM(mat("#24321c", { rough: 1 }));
   const trunkM = trackM(mat("#2a2218", { rough: 0.92 }));
   const bloomM = trackM(mat("#8a4a5a", { rough: 0.7 }));
@@ -1480,8 +1498,10 @@ export function createWorld(): WorldHandle {
     else _rainDir.set(0, -1, 0);
     _rainTmp.position.set(sx[i]!, sy[i]!, sz[i]!);
     _rainTmp.quaternion.setFromUnitVectors(_rainUp, _rainDir);
-    const len = 0.22 + spd * 0.042;
-    const th = 0.7 + ssize[i]! * 1.55;
+    const snow = precip === "snow";
+    const len = snow ? 0.07 + ssize[i]! * 0.04 : 0.22 + spd * 0.042;
+    const th = snow ? 1.8 + ssize[i]! * 2.4 : 0.7 + ssize[i]! * 1.55;
+    if (snow) _rainTmp.quaternion.identity();
     _rainTmp.scale.set(th, len, th);
     _rainTmp.updateMatrix();
     streaks.setMatrixAt(i, _rainTmp.matrix);
@@ -1517,6 +1537,8 @@ export function createWorld(): WorldHandle {
     _rainTmp.updateMatrix();
     mesh.setMatrixAt(i, _rainTmp.matrix);
   }
+
+  let precip: Precip = "rain";
 
   for (let i = 0; i < STREAKS; i++) {
     seedDrop(i, 0, 8, 72, true);
@@ -1556,6 +1578,14 @@ export function createWorld(): WorldHandle {
   let rainOn = true;
   const rainRoot = [streaks, splashes, bounces] as const;
 
+  function applyPrecipLook() {
+    const snow = precip === "snow";
+    streakMat.color.set(snow ? 0xf7fbff : 0xb7c4d2);
+    streakMat.opacity = snow ? 0.9 : 0.3;
+    splashes.visible = rainOn && !snow;
+    bounces.visible = rainOn && !snow;
+  }
+
   return {
     root,
     interior,
@@ -1575,19 +1605,34 @@ export function createWorld(): WorldHandle {
       if (sheetGroup.parent) return;
       cam.add(sheetGroup);
     },
-    setRainVisible: (v, lens = v) => {
-      rainOn = v;
-      rainRoot[0].visible = v;
-      rainRoot[1].visible = v;
-      rainRoot[2].visible = v;
-      sheetGroup.visible = v && !!lens;
+    setPrecip: (kind, lens = kind === "rain") => {
+      precip = kind;
+      rainOn = kind !== "none";
+      rainRoot[0].visible = rainOn;
+      applyPrecipLook();
+      sheetGroup.visible = rainOn && kind === "rain" && !!lens;
+    },
+    setClimate: (season, weather, phase) => {
+      const leaf = foliage(season);
+      canopyM.color.set(leaf.canopy);
+      bloomM.color.set(leaf.bloom);
+      bloomY.color.set(leaf.bloomY);
+      grassM.color.set(leaf.grass);
+      const cover = snowCover(season, weather);
+      snowM.opacity = cover;
+      for (const pad of snowPads) pad.visible = cover > 0.04;
+      const nightish = phase === "night" || phase === "dusk";
+      glassNight.emissiveIntensity = nightish ? 0.7 : phase === "sunset" ? 0.42 : phase === "dawn" ? 0.18 : 0.02;
+      glassNight.color.set(nightish ? 0x1a1810 : phase === "sunset" ? 0x4a3020 : 0x8aa4b8);
     },
     tick: (dt: number, cam: THREE.Vector3) => {
       if (!rainOn) return;
       rainT += dt;
+      const snow = precip === "snow";
       const gust = 1 + 0.34 * Math.sin(rainT * 0.52) + 0.14 * Math.sin(rainT * 1.41 + 0.7);
-      windX = WIND_BASE_X * gust;
-      windZ = WIND_BASE_Z * gust;
+      const windMul = snow ? 0.28 : 1;
+      windX = WIND_BASE_X * gust * windMul;
+      windZ = WIND_BASE_Z * gust * windMul;
 
       sheetA.offset.y -= dt * (1.8 + gust * 0.9);
       sheetB.offset.y -= dt * (1.2 + gust * 0.55);
@@ -1601,13 +1646,13 @@ export function createWorld(): WorldHandle {
       const cz = cam.z;
       for (let i = 0; i < STREAKS; i++) {
         const size = ssize[i]!;
-        const vt = terminalOf(size);
         const tau = 0.18 + size * 0.28;
         const turbX = Math.sin(rainT * 2.7 + i * 0.031) * (1.1 - size * 0.5);
         const turbZ = Math.cos(rainT * 2.1 + i * 0.027) * (1.1 - size * 0.5);
         svx[i] += ((windX + turbX - svx[i]!) / tau) * dt;
         svz[i] += ((windZ + turbZ - svz[i]!) / tau) * dt;
-        svy[i]! -= RAIN_G * dt;
+        svy[i]! -= (snow ? 2.1 : RAIN_G) * dt;
+        const vt = terminalOf(size) * (snow ? 0.12 : 1);
         if (svy[i]! < -vt) svy[i] = -vt;
 
         sx[i]! += svx[i]! * dt;
@@ -1615,16 +1660,18 @@ export function createWorld(): WorldHandle {
         sz[i]! += svz[i]! * dt;
 
         if (sy[i]! < 0.04) {
-          const dx = sx[i]! - cxn;
-          const dz = sz[i]! - cz;
-          if (dx * dx + dz * dz < 900) {
-            const s = spHead++ % SPLASHES;
-            spx[s] = sx[i]!;
-            spz[s] = sz[i]!;
-            spLife[s] = 0.7 + size * 0.4;
-            spSize[s] = 0.08 + size * 0.38;
-            spawnBounce(sx[i]!, sz[i]!, svx[i]!, svz[i]!, size);
-            if (size > 0.45) spawnBounce(sx[i]!, sz[i]!, svx[i]!, svz[i]!, size);
+          if (!snow) {
+            const dx = sx[i]! - cxn;
+            const dz = sz[i]! - cz;
+            if (dx * dx + dz * dz < 900) {
+              const s = spHead++ % SPLASHES;
+              spx[s] = sx[i]!;
+              spz[s] = sz[i]!;
+              spLife[s] = 0.7 + size * 0.4;
+              spSize[s] = 0.08 + size * 0.38;
+              spawnBounce(sx[i]!, sz[i]!, svx[i]!, svz[i]!, size);
+              if (size > 0.45) spawnBounce(sx[i]!, sz[i]!, svx[i]!, svz[i]!, size);
+            }
           }
           seedDrop(i, cxn, camY, cz, false);
         } else if (Math.abs(sx[i]! - cxn) > 48 || Math.abs(sz[i]! - cz) > 48) {

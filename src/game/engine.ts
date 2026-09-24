@@ -23,6 +23,13 @@ import type { FloorId, GameMode, GameSnapshot } from "./types";
 import { SHOT_BY_ID, type ShotId } from "./shots";
 import { createWorld, type WorldHandle } from "./world";
 import { nightEnv } from "./textures";
+import {
+  precipOf,
+  skyLook,
+  type DayPhase,
+  type SeasonId,
+  type WeatherId,
+} from "./atmosphere";
 
 export type Engine = {
   snapshot: () => GameSnapshot;
@@ -31,6 +38,9 @@ export type Engine = {
   setShot: (id: ShotId) => void;
   teleportTo: (floor: FloorId, x: number, y: number) => void;
   setLabels: (v: boolean) => void;
+  setPhase: (phase: DayPhase) => void;
+  setSeason: (season: SeasonId) => void;
+  setWeather: (weather: WeatherId) => void;
   setStick: (x: number, y: number) => void;
   resize: () => void;
   dispose: () => void;
@@ -97,7 +107,46 @@ export function mountEngine(
   const world: WorldHandle = createWorld();
   scene.add(world.root);
   world.attachRain(camera);
-  world.setRainVisible(true, false);
+  let phase: DayPhase = "night";
+  let season: SeasonId = "autumn";
+  let weather: WeatherId = "rain";
+  const lampBase: Array<[THREE.PointLight, number]> = [
+    [entry, 22],
+    [courtLight, 10],
+    [gateLamp, 14],
+    [kppLamp, 9],
+    [driveLamp, 11],
+    [plazaLamp, 10],
+    [eastGateLamp, 8],
+  ];
+  const outdoorFog = new THREE.FogExp2(0x07080c, 0.011);
+
+  function applySky(inside: boolean) {
+    const look = skyLook(phase, weather);
+    renderer.setClearColor(look.sky, 1);
+    scene.environmentIntensity = look.env;
+    world.setClimate(season, weather, phase);
+    if (inside) {
+      scene.fog = null;
+      renderer.toneMappingExposure = 1.12;
+      hemi.intensity = 0.9;
+      moon.intensity = 0.22;
+      return;
+    }
+    outdoorFog.color.set(look.fog);
+    outdoorFog.density = look.fogDensity;
+    scene.fog = outdoorFog;
+    renderer.toneMappingExposure = look.exposure;
+    hemi.color.set(look.hemiSky);
+    hemi.groundColor.set(look.hemiGround);
+    hemi.intensity = look.hemi;
+    moon.color.set(look.sun);
+    moon.intensity = look.sunIntensity;
+    moon.position.set(look.sunPos[0], look.sunPos[1], look.sunPos[2]);
+    fill.color.set(look.fill);
+    fill.intensity = look.fillIntensity;
+    for (const [lamp, base] of lampBase) lamp.intensity = base * look.lamps;
+  }
   const pmrem = new THREE.PMREMGenerator(renderer);
   const envSrc = nightEnv();
   scene.environment = pmrem.fromEquirectangular(envSrc).texture;
@@ -145,12 +194,10 @@ export function mountEngine(
     const outside = mode === "shot" || mode === "orbit" || mode === "title" || isOutside(floor, x, y);
     const inside = (mode === "walk" || mode === "plan") && !outside;
     world.setMassingVisible(!inside);
-    world.setRainVisible(!inside && mode !== "plan", mode === "walk");
+    const fall = !inside && mode !== "plan" ? precipOf(weather) : "none";
+    world.setPrecip(fall, mode === "walk" && weather === "rain");
     torch.visible = mode === "walk";
-    scene.fog = inside ? null : new THREE.FogExp2(0x07080c, 0.011);
-    renderer.toneMappingExposure = inside ? 1.12 : 0.88;
-    hemi.intensity = inside ? 0.9 : 0.45;
-    moon.intensity = inside ? 0.22 : 0.55;
+    applySky(inside);
   }
 
   function applyCamera() {
@@ -505,6 +552,9 @@ export function mountEngine(
       locked: locked || (mode === "walk" && touchWalk()),
       labels,
       shotId: mode === "shot" ? shotId : null,
+      phase,
+      season,
+      weather,
     };
   }
 
@@ -540,6 +590,7 @@ export function mountEngine(
     onChange();
   }
 
+  syncVis();
   applyCamera();
   raf = requestAnimationFrame(step);
 
@@ -566,6 +617,21 @@ export function mountEngine(
     teleportTo,
     setLabels: (v) => {
       labels = v;
+      onChange();
+    },
+    setPhase: (next) => {
+      phase = next;
+      syncVis();
+      onChange();
+    },
+    setSeason: (next) => {
+      season = next;
+      syncVis();
+      onChange();
+    },
+    setWeather: (next) => {
+      weather = next;
+      syncVis();
       onChange();
     },
     setStick: (sx, sy) => {

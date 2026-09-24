@@ -1,3 +1,5 @@
+import type { DayPhase, SeasonId, WeatherId } from "./atmosphere";
+
 export type FloorId = "B1" | "F1" | "F2" | "F3" | "F4" | "F5" | "F6" | "R";
 
 export type RoomType =
@@ -62,6 +64,9 @@ export type GameSnapshot = {
   locked: boolean;
   labels: boolean;
   shotId: string | null;
+  phase: DayPhase;
+  season: SeasonId;
+  weather: WeatherId;
 };
 
 export type ControlsProbe = {

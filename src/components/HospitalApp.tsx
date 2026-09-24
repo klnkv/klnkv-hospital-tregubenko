@@ -10,6 +10,7 @@ import { FloorDrawnPlan, FLOOR_LAYER_ITEMS, FLOOR_LAYER_VIS } from "@/components
 import { LayerVisibility, useLayerVis } from "@/components/LayerStrip";
 import { usePanZoom } from "@/components/usePanZoom";
 import { LookDevDock } from "@/components/LookDevDock";
+import { PHASES, SEASONS, WEATHERS } from "@/game/atmosphere";
 
 const emptySnap: GameSnapshot = {
   mode: "title",
@@ -24,6 +25,9 @@ const emptySnap: GameSnapshot = {
   locked: false,
   labels: true,
   shotId: null,
+  phase: "night",
+  season: "autumn",
+  weather: "rain",
 };
 
 export function HospitalApp() {
@@ -31,6 +35,7 @@ export function HospitalApp() {
   const engineRef = useRef<Engine | null>(null);
   const [snap, setSnap] = useState<GameSnapshot>(emptySnap);
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [climateOpen, setClimateOpen] = useState(false);
   const [planOpen, setPlanOpen] = useState(false);
   const [townOpen, setTownOpen] = useState(false);
   const [townFocus, setTownFocus] = useState<number | null>(null);
@@ -148,7 +153,19 @@ export function HospitalApp() {
             onCatalog={() => setCatalogOpen((v) => !v)}
             onPlan={() => setPlanOpen(true)}
             onTown={() => openTown(1)}
+            onClimate={() => setClimateOpen((v) => !v)}
+            climateOpen={climateOpen}
           />
+          {climateOpen && (
+            <ClimateSheet
+              phase={snap.phase}
+              season={snap.season}
+              weather={snap.weather}
+              onPhase={(id) => engineRef.current?.setPhase(id)}
+              onSeason={(id) => engineRef.current?.setSeason(id)}
+              onWeather={(id) => engineRef.current?.setWeather(id)}
+            />
+          )}
           {snap.mode === "shot" && (
             <ShotStrip
               current={snap.shotId}
@@ -344,6 +361,8 @@ function TopBar({
   onCatalog,
   onPlan,
   onTown,
+  onClimate,
+  climateOpen,
 }: {
   snap: GameSnapshot;
   onFloor: (f: FloorId) => void;
@@ -352,6 +371,8 @@ function TopBar({
   onCatalog: () => void;
   onPlan: () => void;
   onTown: () => void;
+  onClimate: () => void;
+  climateOpen: boolean;
 }) {
   return (
     <header className="absolute left-0 right-0 top-0 z-10 flex items-center gap-2 border-b border-border/80 bg-bg/70 px-3 py-2 backdrop-blur-sm md:px-4">
@@ -405,8 +426,63 @@ function TopBar({
         <button onClick={onCatalog} className="h-10 rounded-sm bg-surface-2 px-3 text-xs text-fg">
           Объекты
         </button>
+        <button
+          onClick={onClimate}
+          className={
+            "h-10 rounded-sm px-3 text-xs " + (climateOpen ? "bg-accent text-accent-fg" : "bg-surface-2 text-fg")
+          }
+        >
+          Свет
+        </button>
       </div>
     </header>
+  );
+}
+
+function ClimateSheet({
+  phase,
+  season,
+  weather,
+  onPhase,
+  onSeason,
+  onWeather,
+}: {
+  phase: GameSnapshot["phase"];
+  season: GameSnapshot["season"];
+  weather: GameSnapshot["weather"];
+  onPhase: (id: GameSnapshot["phase"]) => void;
+  onSeason: (id: GameSnapshot["season"]) => void;
+  onWeather: (id: GameSnapshot["weather"]) => void;
+}) {
+  const row = (
+    label: string,
+    items: readonly { id: string; label: string }[],
+    current: string,
+    pick: (id: string) => void,
+  ) => (
+    <div className="flex flex-wrap items-center gap-1">
+      <span className="w-14 text-[10px] uppercase tracking-wider text-muted">{label}</span>
+      {items.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          onClick={() => pick(item.id)}
+          className={
+            "h-9 rounded-sm px-2.5 text-xs " +
+            (current === item.id ? "bg-accent text-accent-fg" : "bg-surface-2 text-fg")
+          }
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+  return (
+    <div className="absolute left-3 right-3 top-16 z-20 flex max-w-xl flex-col gap-2 rounded-md border border-border bg-bg/90 p-3 shadow-lg backdrop-blur-sm md:left-auto md:right-4">
+      {row("Сутки", PHASES, phase, (id) => onPhase(id as GameSnapshot["phase"]))}
+      {row("Сезон", SEASONS, season, (id) => onSeason(id as GameSnapshot["season"]))}
+      {row("Небо", WEATHERS, weather, (id) => onWeather(id as GameSnapshot["weather"]))}
+    </div>
   );
 }
 
