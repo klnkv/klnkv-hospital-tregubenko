@@ -555,6 +555,7 @@ export function mountEngine(
       phase,
       season,
       weather,
+      core: coreRooms(floor).some((r) => x >= r.x0 && x <= r.x1 && y >= r.y0 && y <= r.y1),
     };
   }
 

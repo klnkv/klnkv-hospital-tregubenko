@@ -67,6 +67,7 @@ export type GameSnapshot = {
   phase: DayPhase;
   season: SeasonId;
   weather: WeatherId;
+  core: boolean;
 };
 
 export type ControlsProbe = {

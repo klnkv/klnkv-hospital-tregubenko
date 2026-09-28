@@ -138,9 +138,22 @@ export function createWorld(): WorldHandle {
   sage.side = THREE.DoubleSide;
   const sageNew = trackM(mat("#8a9aa0", { rough: 0.8 }));
   sageNew.side = THREE.DoubleSide;
-  const floorOld = trackM(mat("#8a7a62", { map: tex.linoleum("#8a7a62"), rough: 0.7 }));
-  const floorNew = trackM(mat("#6e7678", { map: tex.linoleum("#6e7678"), rough: 0.65 }));
-  const floorCor = trackM(mat("#5c564c", { map: tex.linoleum("#5c564c"), rough: 0.75 }));
+  const floorOld = trackM(mat("#b7a48c", { map: tex.wardVinyl(false), rough: 0.72 }));
+  const floorNew = trackM(mat("#7e8c88", { map: tex.wardVinyl(true), rough: 0.68 }));
+  const floorCor = trackM(mat("#5c564c", { map: tex.corridorVinyl(), rough: 0.62 }));
+  const floorEpoxyM = trackM(
+    wet("#d7e0da", { map: tex.epoxy(), rough: 0.18, coat: 0.72, coatRough: 0.12, env: 0.85 }),
+  );
+  const floorWcM = trackM(mat("#e4e2dc", { map: tex.ceramic(), rough: 0.28, env: 0.45 }));
+  const floorMorgueM = trackM(mat("#9aa3a8", { map: tex.morgueTile(), rough: 0.34, env: 0.4 }));
+  const floorLabM = trackM(mat("#7f8c96", { map: tex.labVinyl(), rough: 0.45 }));
+  const floorCarpetM = trackM(mat("#6a5e52", { map: tex.carpet(), rough: 0.94 }));
+  const floorTerrazzoM = trackM(
+    wet("#cfc6b8", { map: tex.terrazzo(), rough: 0.28, coat: 0.4, coatRough: 0.22, env: 0.6 }),
+  );
+  const floorStairM = trackM(mat("#6e6a64", { map: tex.stairTread(), rough: 0.84 }));
+  const floorPlateM = trackM(mat("#9aa0a4", { map: tex.diamondPlate(), rough: 0.38, metal: 0.72, env: 0.9 }));
+  const floorTapeM = trackM(mat("#c9a227", { rough: 0.55 }));
   const ceilM = trackM(mat("#d4cec2", { rough: 0.95 }));
   const concreteM = trackM(mat("#6a6862", { map: tex.concrete(), rough: 0.88, env: 0.4 }));
   const asphaltM = trackM(
@@ -598,10 +611,19 @@ export function createWorld(): WorldHandle {
   const B = {
     floorOld: new Instancer(box, floorOld, 80, interior),
     floorNew: new Instancer(box, floorNew, 80, interior),
-    floorCor: new Instancer(box, floorCor, 40, interior),
-    floorCon: new Instancer(box, concreteM, 40, interior),
-    parquet: new Instancer(box, parquetM, 8, interior),
-    tile: new Instancer(box, tileKitM, 8, interior),
+    floorCor: new Instancer(box, floorCor, 48, interior),
+    floorCon: new Instancer(box, concreteM, 48, interior),
+    floorEpoxy: new Instancer(box, floorEpoxyM, 24, interior),
+    floorWc: new Instancer(box, floorWcM, 16, interior),
+    floorMorgue: new Instancer(box, floorMorgueM, 8, interior),
+    floorLab: new Instancer(box, floorLabM, 24, interior),
+    floorCarpet: new Instancer(box, floorCarpetM, 48, interior),
+    floorTerrazzo: new Instancer(box, floorTerrazzoM, 12, interior),
+    floorStair: new Instancer(box, floorStairM, 16, interior),
+    floorPlate: new Instancer(box, floorPlateM, 8, interior),
+    floorTape: new Instancer(box, floorTapeM, 48, interior),
+    parquet: new Instancer(box, parquetM, 16, interior),
+    tile: new Instancer(box, tileKitM, 16, interior),
     ceil: new Instancer(box, ceilM, 120, interior),
     sage: new Instancer(box, sage, 700, interior),
     sageNew: new Instancer(box, sageNew, 400, interior),
@@ -614,7 +636,7 @@ export function createWorld(): WorldHandle {
     cloth: new Instancer(box, clothM, 48, interior),
     napkin: new Instancer(box, napkinM, 24, interior),
     velvet: new Instancer(box, velvetM, 100, interior),
-    rug: new Instancer(box, rugM, 4, interior),
+    rug: new Instancer(box, rugM, 16, interior),
     china: new Instancer(box, chinaM, 80, interior),
     brass: new Instancer(box, brassM, 80, interior),
     silver: new Instancer(box, silverM, 80, interior),
@@ -1254,9 +1276,38 @@ export function createWorld(): WorldHandle {
     }
   }
 
+  const wetGeo = trackG(new THREE.CircleGeometry(1, 18));
+  wetGeo.rotateX(-Math.PI / 2);
+  const wetFloorM = trackM(
+    new THREE.MeshPhysicalMaterial({
+      color: 0xd5e4ea,
+      roughness: 0.04,
+      metalness: 0.02,
+      clearcoat: 1,
+      clearcoatRoughness: 0.05,
+      transparent: true,
+      opacity: 0.38,
+      depthWrite: false,
+    }),
+  );
+  const wetSpots: THREE.Mesh[] = [];
+  let wetT = 0;
+  function clearWets() {
+    for (const m of wetSpots) m.removeFromParent();
+    wetSpots.length = 0;
+  }
+  function addWet(x: number, y: number, z: number, s: number) {
+    const m = new THREE.Mesh(wetGeo, wetFloorM);
+    m.position.set(x, y + 0.05, z);
+    m.scale.set(s, s, 1);
+    interior.add(m);
+    wetSpots.push(m);
+  }
+
   function buildFloor(floor: FloorId) {
     for (const b of Object.values(B)) b.reset();
     clearDoorSigns();
+    clearWets();
     chefG.visible = false;
     diningPlaque.visible = false;
     kitchenPlaque.visible = false;
@@ -1309,14 +1360,55 @@ export function createWorld(): WorldHandle {
       const mz = -cy(r);
       const w = rw(r);
       const d = rd(r);
+      const t = r.type;
       const isNew = mx > NEW_WING_X;
-      const fm = floor === "B1" ? B.floorCon : isNew ? B.floorNew : B.floorOld;
-      if (floor === "F1" && (r.slot === "WW2" || r.id === "F1-DINING")) B.parquet.add(mx, y + 0.02, mz, w, 0.04, d);
-      else if (floor === "F1" && (r.slot === "WW1" || r.id === "F1-KITCHEN")) B.tile.add(mx, y + 0.02, mz, w, 0.04, d);
-      else fm.add(mx, y + 0.02, mz, w, 0.04, d);
+      const lift = r.slot === "LIFT" || r.id.endsWith("-L");
+      const slab = (b: Instancer) => b.add(mx, y + 0.02, mz, w, 0.04, d);
+      if (t === "DINING" || t === "CONF") slab(B.parquet);
+      else if (t === "KITCHEN") slab(B.tile);
+      else if (t === "OR" || t === "ICU") slab(B.floorEpoxy);
+      else if (t === "WC") slab(B.floorWc);
+      else if (t === "MORGUE") slab(B.floorMorgue);
+      else if (t === "LAB" || t === "CT") slab(B.floorLab);
+      else if (t === "LOBBY") slab(B.floorTerrazzo);
+      else if (t === "OFFICE" || t === "ARCHIVE" || t === "POST") slab(B.floorCarpet);
+      else if (t === "TECH" || (floor === "B1" && t !== "CORE")) slab(B.floorCon);
+      else if (t === "CORE" && lift) slab(B.floorPlate);
+      else if (t === "CORE") slab(B.floorStair);
+      else slab(isNew ? B.floorNew : B.floorOld);
       B.ceil.add(mx, y + h - 0.02, mz, w, 0.04, d);
 
       const door = doorEdge(r);
+      const inset = 0.28;
+      if (door === "N") B.metal.add(mx, y + 0.05, -(r.y1) + inset, Math.min(1.2, w - 0.4), 0.015, 0.07);
+      else if (door === "S") B.metal.add(mx, y + 0.05, -(r.y0) - inset, Math.min(1.2, w - 0.4), 0.015, 0.07);
+      else if (door === "E") B.metal.add(r.x1 - inset, y + 0.05, mz, 0.07, 0.015, Math.min(1.2, d - 0.4));
+      else B.metal.add(r.x0 + inset, y + 0.05, mz, 0.07, 0.015, Math.min(1.2, d - 0.4));
+      if (t === "CORE" && !lift) {
+        const n = 3;
+        for (let i = 0; i < n; i++) {
+          const u = (i + 0.5) / n - 0.5;
+          if (w >= d) B.floorTape.add(mx + u * w * 0.8, y + 0.05, mz, 0.07, 0.012, Math.max(0.8, d * 0.7));
+          else B.floorTape.add(mx, y + 0.05, mz + u * d * 0.8, Math.max(0.8, w * 0.7), 0.012, 0.07);
+        }
+      }
+      if (t === "CORE" && lift) {
+        B.brass.add(mx, y + 0.05, mz, 0.55, 0.012, 0.55);
+      }
+      if (t === "WC") {
+        B.cylDark.add(mx, y + 0.04, mz + d * 0.15, 0.06, 0.015, 0.06);
+        addWet(mx + w * 0.12, y, mz - d * 0.05, 0.32);
+      }
+      if (t === "MORGUE") addWet(mx, y, mz + d * 0.1, 0.55);
+      if (t === "OR" || t === "ICU") {
+        const mw = Math.min(w * 0.55, 2.4);
+        const md = Math.min(d * 0.4, 1.6);
+        B.floorTape.add(mx, y + 0.045, mz - md / 2, mw, 0.01, 0.035);
+        B.floorTape.add(mx, y + 0.045, mz + md / 2, mw, 0.01, 0.035);
+        B.floorTape.add(mx - mw / 2, y + 0.045, mz, 0.035, 0.01, md);
+        B.floorTape.add(mx + mw / 2, y + 0.045, mz, 0.035, 0.01, md);
+      }
+      if (t === "LOBBY") B.rug.add(mx, y + 0.045, mz, Math.min(w * 0.35, 2.2), 0.012, Math.min(d * 0.55, 3.2));
       const edges: Array<{
         e: "N" | "S" | "E" | "W";
         x: number;
@@ -1626,6 +1718,8 @@ export function createWorld(): WorldHandle {
       glassNight.color.set(nightish ? 0x1a1810 : phase === "sunset" ? 0x4a3020 : 0x8aa4b8);
     },
     tick: (dt: number, cam: THREE.Vector3) => {
+      wetT += dt;
+      wetFloorM.opacity = 0.28 + Math.sin(wetT * 1.7) * 0.12;
       if (!rainOn) return;
       rainT += dt;
       const snow = precip === "snow";

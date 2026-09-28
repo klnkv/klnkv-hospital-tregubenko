@@ -128,6 +128,243 @@ export function stainOverlay() {
   );
 }
 
+export function wardVinyl(cool = false) {
+  return canvasTex(
+    cool ? "ward-vinyl-cool" : "ward-vinyl",
+    512,
+    (ctx, s) => {
+      ctx.fillStyle = cool ? "#7e8c88" : "#b7a48c";
+      ctx.fillRect(0, 0, s, s);
+      const w = 168;
+      const h = 512;
+      for (let x = 0, i = 0; x < s + w; x += w, i++) {
+        const shift = cool ? 8 : 16;
+        ctx.fillStyle = cool
+          ? `rgb(${118 + (i % 2) * shift},${132 + (i % 3) * 6},${128})`
+          : `rgb(${176 + (i % 2) * shift},${154 + (i % 3) * 4},${128})`;
+        ctx.fillRect(x + 3, 0, w - 6, h);
+        ctx.fillStyle = "rgba(255,255,255,0.06)";
+        ctx.fillRect(x + 8, 0, 10, h);
+        ctx.strokeStyle = "rgba(40,30,20,0.28)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, s);
+        ctx.stroke();
+      }
+      for (let i = 0; i < 18; i++) {
+        ctx.fillStyle = "rgba(40,32,24,0.08)";
+        ctx.beginPath();
+        ctx.ellipse(Math.random() * s, Math.random() * s, 30 + Math.random() * 50, 8, Math.random(), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      noise(ctx, s, 10);
+    },
+    3,
+  );
+}
+
+export function epoxy() {
+  return canvasTex(
+    "or-epoxy",
+    512,
+    (ctx, s) => {
+      const g = ctx.createLinearGradient(0, 0, s, s);
+      g.addColorStop(0, "#e4eeea");
+      g.addColorStop(1, "#c5d2cc");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, s, s);
+      for (let i = 0; i < 900; i++) {
+        ctx.fillStyle = `rgba(255,255,255,${0.03 + Math.random() * 0.05})`;
+        ctx.fillRect(Math.random() * s, Math.random() * s, 2, 2);
+      }
+      noise(ctx, s, 6);
+    },
+    2,
+  );
+}
+
+export function ceramic() {
+  return canvasTex(
+    "wc-ceramic",
+    512,
+    (ctx, s) => {
+      ctx.fillStyle = "#8a8680";
+      ctx.fillRect(0, 0, s, s);
+      const t = 42;
+      for (let y = 0; y < s; y += t) {
+        for (let x = 0; x < s; x += t) {
+          const v = 228 + Math.random() * 14;
+          ctx.fillStyle = `rgb(${v},${v - 2},${v - 6})`;
+          ctx.fillRect(x + 2, y + 2, t - 4, t - 4);
+        }
+      }
+      ctx.fillStyle = "rgba(180,200,210,0.28)";
+      ctx.beginPath();
+      ctx.ellipse(s * 0.62, s * 0.4, 70, 36, 0.4, 0, Math.PI * 2);
+      ctx.fill();
+      noise(ctx, s, 6);
+    },
+    4,
+  );
+}
+
+export function morgueTile() {
+  return canvasTex(
+    "morgue-tile",
+    512,
+    (ctx, s) => {
+      ctx.fillStyle = "#4a5256";
+      ctx.fillRect(0, 0, s, s);
+      const t = 128;
+      for (let y = 0, row = 0; y < s; y += t, row++) {
+        for (let x = 0; x < s; x += t) {
+          const v = 132 + ((row + x) % 3) * 8;
+          ctx.fillStyle = `rgb(${v - 6},${v},${v + 6})`;
+          ctx.fillRect(x + 3, y + 3, t - 6, t - 6);
+          ctx.fillStyle = "rgba(255,255,255,0.05)";
+          ctx.fillRect(x + 8, y + 8, t * 0.3, 4);
+        }
+      }
+      noise(ctx, s, 8);
+    },
+    3,
+  );
+}
+
+export function labVinyl() {
+  return canvasTex(
+    "lab-vinyl",
+    256,
+    (ctx, s) => {
+      ctx.fillStyle = "#6e7c86";
+      ctx.fillRect(0, 0, s, s);
+      ctx.strokeStyle = "rgba(20,28,32,0.2)";
+      ctx.lineWidth = 2;
+      for (let x = 0; x <= s; x += 64) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, s);
+        ctx.stroke();
+      }
+      noise(ctx, s, 8);
+    },
+    4,
+  );
+}
+
+export function carpet() {
+  return canvasTex(
+    "office-carpet",
+    256,
+    (ctx, s) => {
+      ctx.fillStyle = "#5c5148";
+      ctx.fillRect(0, 0, s, s);
+      for (let i = 0; i < 5000; i++) {
+        const v = 70 + Math.random() * 40;
+        ctx.fillStyle = `rgba(${v + 10},${v},${v - 8},0.18)`;
+        ctx.fillRect(Math.random() * s, Math.random() * s, 2, 3);
+      }
+      noise(ctx, s, 8);
+    },
+    4,
+  );
+}
+
+export function terrazzo() {
+  return canvasTex(
+    "lobby-terrazzo",
+    512,
+    (ctx, s) => {
+      ctx.fillStyle = "#d2c8b8";
+      ctx.fillRect(0, 0, s, s);
+      const chips = ["#8a8478", "#efe8dc", "#6a5a48", "#b7b0a4", "#3a3a38"];
+      for (let i = 0; i < 420; i++) {
+        ctx.fillStyle = chips[i % chips.length]!;
+        ctx.globalAlpha = 0.55;
+        ctx.beginPath();
+        ctx.ellipse(
+          Math.random() * s,
+          Math.random() * s,
+          2 + Math.random() * 7,
+          1.5 + Math.random() * 4,
+          Math.random() * Math.PI,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      noise(ctx, s, 6);
+    },
+    3,
+  );
+}
+
+export function stairTread() {
+  return canvasTex(
+    "stair-tread",
+    256,
+    (ctx, s) => {
+      ctx.fillStyle = "#6a6660";
+      ctx.fillRect(0, 0, s, s);
+      for (let y = 0; y < s; y += 36) {
+        ctx.fillStyle = "rgba(20,18,16,0.35)";
+        ctx.fillRect(0, y, s, 4);
+        ctx.fillStyle = "rgba(220,190,80,0.0)";
+      }
+      noise(ctx, s, 14);
+    },
+    3,
+  );
+}
+
+export function diamondPlate() {
+  return canvasTex(
+    "lift-plate",
+    256,
+    (ctx, s) => {
+      ctx.fillStyle = "#8e9498";
+      ctx.fillRect(0, 0, s, s);
+      ctx.fillStyle = "rgba(255,255,255,0.18)";
+      const step = 18;
+      for (let y = 0; y < s + step; y += step) {
+        for (let x = ((y / step) % 2) * (step / 2); x < s; x += step) {
+          ctx.beginPath();
+          ctx.moveTo(x, y - 4);
+          ctx.lineTo(x + 5, y);
+          ctx.lineTo(x, y + 4);
+          ctx.lineTo(x - 5, y);
+          ctx.fill();
+        }
+      }
+      noise(ctx, s, 8);
+    },
+    4,
+  );
+}
+
+export function corridorVinyl() {
+  return canvasTex(
+    "corridor-vinyl",
+    512,
+    (ctx, s) => {
+      ctx.fillStyle = "#4e4a44";
+      ctx.fillRect(0, 0, s, s);
+      const w = 64;
+      for (let x = 0, i = 0; x < s; x += w, i++) {
+        const v = 78 + (i % 3) * 8;
+        ctx.fillStyle = `rgb(${v + 6},${v},${v - 6})`;
+        ctx.fillRect(x + 1, 0, w - 2, s);
+      }
+      ctx.fillStyle = "rgba(20,16,12,0.18)";
+      ctx.fillRect(s * 0.28, 0, s * 0.44, s);
+      noise(ctx, s, 10);
+    },
+    4,
+  );
+}
+
 export function linoleum(hex: string) {
   return canvasTex(
     "lino-" + hex,

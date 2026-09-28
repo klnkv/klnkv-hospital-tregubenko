@@ -28,6 +28,7 @@ const emptySnap: GameSnapshot = {
   phase: "night",
   season: "autumn",
   weather: "rain",
+  core: false,
 };
 
 export function HospitalApp() {
@@ -715,6 +716,9 @@ function BottomHint({ snap }: { snap: GameSnapshot }) {
       <div className="rounded-md border border-border bg-bg/75 px-3 py-2">
         <p className="font-mono text-[10px] text-accent">{snap.floor}</p>
         <p className="text-sm text-fg">{snap.roomName}</p>
+        {snap.core && snap.mode === "walk" && (
+          <p className="text-[11px] text-accent">E — этаж вниз · Q — этаж вверх</p>
+        )}
         <p className="hidden text-[11px] text-subtle md:block">
           {snap.mode === "shot"
             ? "1 ворота · 2 машина · 3 такси · P / Ход — идти"
