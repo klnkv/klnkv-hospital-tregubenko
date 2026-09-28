@@ -16,6 +16,7 @@ import * as tex from "./textures";
 import type { DayPhase, Precip, SeasonId, WeatherId } from "./atmosphere";
 import { foliage, snowCover } from "./atmosphere";
 import type { FloorId, RoomDef, RoomType } from "./types";
+import { roomKit, wallTone, type RoomKit, type WallTone } from "./kits";
 
 const _tmp = new THREE.Object3D();
 
@@ -134,6 +135,14 @@ export function createWorld(): WorldHandle {
   plasterNew.side = THREE.DoubleSide;
   const plasterIn = trackM(mat("#cfc6b4", { map: tex.plaster("#cfc6b4"), rough: 0.9 }));
   plasterIn.side = THREE.DoubleSide;
+  const plasterClinic = trackM(mat("#e6e2d8", { map: tex.plaster("#e6e2d8"), rough: 0.82 }));
+  plasterClinic.side = THREE.DoubleSide;
+  const plasterCold = trackM(mat("#aeb6ba", { map: tex.plaster("#aeb6ba"), rough: 0.7 }));
+  plasterCold.side = THREE.DoubleSide;
+  const plasterPlant = trackM(mat("#6e6a62", { map: tex.concrete(), rough: 0.9 }));
+  plasterPlant.side = THREE.DoubleSide;
+  const plasterPsych = trackM(mat("#8d927c", { map: tex.plaster("#8d927c"), rough: 0.88 }));
+  plasterPsych.side = THREE.DoubleSide;
   const sage = trackM(mat("#7d8b78", { rough: 0.88 }));
   sage.side = THREE.DoubleSide;
   const sageNew = trackM(mat("#8a9aa0", { rough: 0.8 }));
@@ -629,10 +638,14 @@ export function createWorld(): WorldHandle {
     sageNew: new Instancer(box, sageNew, 400, interior),
     plaster: new Instancer(box, plasterIn, 700, interior),
     plasterNew: new Instancer(box, plasterNew, 400, interior),
-    wood: new Instancer(box, woodM, 700, interior),
+    wallClinic: new Instancer(box, plasterClinic, 280, interior),
+    wallCold: new Instancer(box, plasterCold, 160, interior),
+    wallPlant: new Instancer(box, plasterPlant, 200, interior),
+    wallPsych: new Instancer(box, plasterPsych, 280, interior),
+    wood: new Instancer(box, woodM, 900, interior),
     walnut: new Instancer(box, walnutM, 240, interior),
-    metal: new Instancer(box, metalM, 700, interior),
-    linen: new Instancer(box, linen, 280, interior),
+    metal: new Instancer(box, metalM, 980, interior),
+    linen: new Instancer(box, linen, 420, interior),
     cloth: new Instancer(box, clothM, 48, interior),
     napkin: new Instancer(box, napkinM, 24, interior),
     velvet: new Instancer(box, velvetM, 100, interior),
@@ -642,15 +655,15 @@ export function createWorld(): WorldHandle {
     silver: new Instancer(box, silverM, 80, interior),
     copper: new Instancer(box, copperM, 80, interior),
     tomato: new Instancer(box, tomatoM, 8, interior),
-    dark: new Instancer(box, darkMetal, 500, interior),
+    dark: new Instancer(box, darkMetal, 700, interior),
     light: new Instancer(box, emissiveWarm, 220, interior),
     lightCool: new Instancer(box, emissiveCool, 60, interior),
     glass: new Instancer(box, glassDark, 180, interior),
     crystal: new Instancer(box, crystalM, 60, interior),
     glassLit: new Instancer(winGeo, glassNight, 220, interior),
-    cylMetal: new Instancer(cyl, metalM, 80, interior),
-    cylDark: new Instancer(cyl, darkMetal, 80, interior),
-    cylLight: new Instancer(cyl, emissiveCool, 40, interior),
+    cylMetal: new Instancer(cyl, metalM, 140, interior),
+    cylDark: new Instancer(cyl, darkMetal, 140, interior),
+    cylLight: new Instancer(cyl, emissiveCool, 80, interior),
     cylCopper: new Instancer(cyl, copperM, 50, interior),
     cylBrass: new Instancer(cyl, brassM, 30, interior),
     cylSilver: new Instancer(cyl, silverM, 40, interior),
@@ -810,6 +823,14 @@ export function createWorld(): WorldHandle {
   const orderlyB = standingStaff(suitNavy, skinPale, hairSand);
   const nurseG = standingStaff(whitesM, skinElder, hairSilver);
 
+  function upperWall(isNew: boolean, tone: WallTone | null) {
+    if (tone === "clinic") return B.wallClinic;
+    if (tone === "cold") return B.wallCold;
+    if (tone === "plant") return B.wallPlant;
+    if (tone === "psych") return B.wallPsych;
+    return isNew ? B.plasterNew : B.plaster;
+  }
+
   function wallPair(
     isNew: boolean,
     x: number,
@@ -819,9 +840,10 @@ export function createWorld(): WorldHandle {
     y: number,
     lowerH: number,
     upperH: number,
+    tone: WallTone | null = null,
   ) {
-    const lo = isNew ? B.sageNew : B.sage;
-    const hi = isNew ? B.plasterNew : B.plaster;
+    const lo = tone === "plant" || tone === "psych" ? upperWall(isNew, tone) : isNew ? B.sageNew : B.sage;
+    const hi = upperWall(isNew, tone);
     lo.add(x, y + lowerH / 2, z, sx, lowerH, sz);
     hi.add(x, y + lowerH + upperH / 2, z, sx, upperH, sz);
   }
@@ -873,6 +895,162 @@ export function createWorld(): WorldHandle {
     doorSigns.add(plate);
   }
 
+  function furnishKit(
+    kit: RoomKit,
+    add: AddFn,
+    w: number,
+    d: number,
+    y: number,
+    mx: number,
+    mz: number,
+  ) {
+    const span = Math.min(w * 0.7, 4.2);
+    if (kit === "boiler") {
+      B.cylDark.add(mx - 1.1, y + 1.15, mz, 0.7, 2.2, 0.7);
+      B.cylDark.add(mx + 1.1, y + 1.15, mz, 0.55, 2.0, 0.55);
+      add(B.metal, 0, 2.35, 0, span, 0.22, 0.22);
+      add(B.dark, 0, 0.35, d * 0.28, span, 0.35, 0.45);
+    } else if (kit === "switchgear") {
+      for (let i = -1; i <= 1; i++) {
+        add(B.dark, i * 1.15, 1.15, -d * 0.22, 0.85, 2.2, 0.45);
+        add(B.lightCool, i * 1.15, 1.7, -d * 0.22 + 0.24, 0.08, 0.08, 0.02);
+        add(B.light, i * 1.15, 1.45, -d * 0.22 + 0.24, 0.08, 0.08, 0.02);
+      }
+    } else if (kit === "vent") {
+      add(B.metal, 0, 2.3, 0, span, 0.55, 0.7);
+      add(B.metal, -span * 0.35, 1.3, 0, 0.45, 1.6, 0.45);
+      add(B.metal, span * 0.35, 1.3, 0, 0.45, 1.6, 0.45);
+    } else if (kit === "water") {
+      B.cylMetal.add(mx - 0.9, y + 1.0, mz, 0.65, 1.9, 0.65);
+      B.cylMetal.add(mx + 0.9, y + 0.8, mz, 0.5, 1.5, 0.5);
+      add(B.metal, 0, 1.7, 0, 2.2, 0.12, 0.12);
+    } else if (kit === "workshop") {
+      add(B.wood, 0, 0.85, -d * 0.18, span, 0.08, 0.8);
+      add(B.dark, 0, 0.42, -d * 0.18, span, 0.8, 0.7);
+      add(B.metal, w * 0.28, 1.1, 0.2, 0.35, 1.6, 0.8);
+    } else if (kit === "laundry") {
+      for (let i = -1; i <= 1; i++) {
+        add(B.metal, i * 1.05, 0.55, -d * 0.15, 0.85, 1.05, 0.75);
+        B.cylDark.add(mx + i * 1.05, y + 0.85, mz - d * 0.15, 0.22, 0.08, 0.22);
+      }
+      add(B.linen, 0, 0.35, d * 0.25, 1.2, 0.45, 0.7);
+    } else if (kit === "pharmacy") {
+      add(B.wood, 0, 0.55, d * 0.12, Math.min(w * 0.72, 3.4), 1.05, 0.55);
+      add(B.wood, 0, 1.35, -d * 0.28, span, 1.7, 0.35);
+      for (const dx of [-0.8, 0, 0.8]) {
+        add(B.china, dx, 1.55, -d * 0.28, 0.16, 0.22, 0.12);
+      }
+    } else if (kit === "server") {
+      add(B.dark, -0.7, 1.15, 0, 0.7, 2.2, 0.9);
+      add(B.dark, 0.7, 1.15, 0, 0.7, 2.2, 0.9);
+      for (let i = 0; i < 4; i++) {
+        add(B.lightCool, -0.7, 0.55 + i * 0.4, 0.46, 0.4, 0.04, 0.02);
+        add(B.lightCool, 0.7, 0.7 + i * 0.35, 0.46, 0.4, 0.04, 0.02);
+      }
+    } else if (kit === "procedure") {
+      add(B.linen, 0, 0.55, 0, 0.75, 0.12, 1.9);
+      add(B.metal, 0, 0.28, 0, 0.7, 0.5, 1.85);
+      add(B.metal, w * 0.28, 0.85, 0, 0.45, 1.5, 0.45);
+      B.cylLight.add(mx, y + 2.35, mz, 0.28, 0.08, 0.28);
+    } else if (kit === "sterile") {
+      add(B.metal, -w * 0.18, 0.9, 0, 0.7, 1.7, Math.min(d * 0.55, 2.2));
+      add(B.metal, w * 0.2, 0.7, 0, 0.9, 1.2, 0.7);
+      add(B.light, w * 0.2, 1.15, 0.2, 0.15, 0.08, 0.04);
+    } else if (kit === "preop") {
+      add(B.metal, 0, 0.4, 0, 0.9, 0.7, 2.0);
+      add(B.linen, 0, 0.8, 0, 0.85, 0.12, 1.9);
+      add(B.metal, w * 0.3, 0.7, 0, 0.5, 1.2, 0.7);
+    } else if (kit === "or") {
+      add(B.metal, 0, 0.55, 0, 1.9, 0.9, 0.75);
+      add(B.linen, 0, 1.02, 0, 1.7, 0.06, 0.65);
+      B.cylMetal.add(mx, y + 2.35, mz, 0.08, 1.5, 0.08);
+      B.cylLight.add(mx, y + 2.95, mz, 0.5, 0.08, 0.5);
+      add(B.metal, -w * 0.3, 0.85, 0.15, 0.55, 0.9, 0.4);
+      add(B.metal, w * 0.3, 1.0, -d * 0.15, 0.4, 1.8, 1.4);
+    } else if (kit === "ct") {
+      B.cylMetal.add(mx, y + 1.15, mz, 1.45, 0.62, 1.45);
+      B.cylDark.add(mx, y + 1.15, mz, 0.95, 0.66, 0.95);
+      add(B.metal, 0, 0.5, 1.35, 0.7, 1.0, 1.7);
+      add(B.dark, w * 0.32, 0.7, -0.4, 0.5, 1.2, 0.4);
+    } else if (kit === "morgue") {
+      add(B.metal, -1.3, 0.7, 0, 0.85, 1.5, 2.1);
+      add(B.metal, 0, 0.7, 0, 0.85, 1.5, 2.1);
+      add(B.metal, 1.3, 0.7, 0, 0.85, 1.5, 2.1);
+      add(B.metal, 0, 0.45, d * 0.32, 2.1, 0.12, 0.7);
+    } else if (kit === "coldstore") {
+      add(B.metal, -0.9, 1.15, 0, 1.1, 2.2, Math.min(d * 0.45, 1.6));
+      add(B.metal, 0.9, 1.15, 0, 1.1, 2.2, Math.min(d * 0.45, 1.6));
+      add(B.lightCool, -0.9, 1.6, 0.7, 0.12, 0.08, 0.02);
+      add(B.lightCool, 0.9, 1.6, 0.7, 0.12, 0.08, 0.02);
+    } else if (kit === "psych-group") {
+      add(B.wood, 0, 0.4, 0, 1.3, 0.7, 1.3);
+      for (const [dx, dz] of [
+        [-1.1, 0],
+        [1.1, 0],
+        [0, -1.1],
+        [0, 1.1],
+      ] as Array<[number, number]>) {
+        add(B.wood, dx, 0.45, dz, 0.42, 0.85, 0.42);
+      }
+    } else if (kit === "psych-bed" || kit === "isolation") {
+      add(B.metal, 0, 0.32, 0, 0.95, 0.6, 2.0);
+      add(B.linen, 0, 0.7, 0, 0.9, 0.14, 1.9);
+      add(B.wood, w * 0.28, 0.45, 0.4, 0.5, 0.85, 0.5);
+      if (kit === "isolation") add(B.glass, -w * 0.32, 1.3, 0, 0.08, 1.2, 1.4);
+    } else if (kit === "chief") {
+      add(B.wood, 0, 0.75, -d * 0.08, 2.1, 0.08, 1.0);
+      add(B.wood, 0, 0.38, -d * 0.08, 2.0, 0.72, 0.9);
+      add(B.dark, 0, 0.48, 0.7, 0.5, 0.9, 0.5);
+      add(B.wood, 0, 1.3, -d * 0.32, 2.4, 1.8, 0.35);
+    } else if (kit === "deskrow") {
+      for (const dx of [-1.15, 1.15]) {
+        add(B.wood, dx, 0.74, 0, 1.3, 0.08, 0.7);
+        add(B.wood, dx, 0.36, 0, 1.25, 0.7, 0.6);
+        add(B.dark, dx, 0.48, 0.65, 0.4, 0.85, 0.4);
+      }
+    } else if (kit === "reception") {
+      add(B.wood, 0, 0.55, 0.1, Math.min(w * 0.7, 4.2), 1.1, 0.7);
+      add(B.dark, -1.2, 0.45, -0.8, 0.45, 0.85, 0.45);
+      add(B.dark, 0, 0.45, -0.8, 0.45, 0.85, 0.45);
+      add(B.dark, 1.2, 0.45, -0.8, 0.45, 0.85, 0.45);
+    } else if (kit === "guard") {
+      add(B.dark, 0, 0.55, 0, 1.6, 1.05, 0.7);
+      add(B.lightCool, -0.35, 1.15, 0.2, 0.45, 0.28, 0.04);
+      add(B.lightCool, 0.35, 1.15, 0.2, 0.45, 0.28, 0.04);
+    } else if (kit === "linen") {
+      for (let i = -1; i <= 1; i++) {
+        add(B.metal, i * Math.min(1.3, w * 0.28), 1.15, 0, 0.4, 2.2, Math.min(d * 0.6, 2.4));
+        add(B.linen, i * Math.min(1.3, w * 0.28), 0.7, 0.15, 0.7, 0.18, 0.35);
+        add(B.linen, i * Math.min(1.3, w * 0.28), 1.3, 0.15, 0.7, 0.18, 0.35);
+      }
+    } else if (kit === "waste") {
+      add(B.dark, -0.6, 0.45, 0, 0.55, 0.85, 0.55);
+      add(B.dark, 0.55, 0.55, 0, 0.7, 1.05, 0.7);
+      add(B.metal, 0.9, 0.35, 0.5, 0.35, 0.7, 0.9);
+    } else if (kit === "samples") {
+      add(B.metal, -0.7, 1.05, 0, 0.9, 2.0, 0.7);
+      add(B.metal, 0.75, 0.9, 0, 0.8, 1.7, 0.65);
+      add(B.glass, 0.75, 1.35, 0.34, 0.45, 0.55, 0.04);
+    } else if (kit === "locker") {
+      add(B.wood, 0, 0.45, -d * 0.2, Math.min(w * 0.7, 3), 0.45, 0.45);
+      add(B.metal, w * 0.28, 1.15, 0.15, 0.45, 2.1, 0.4);
+      add(B.linen, -w * 0.22, 1.3, 0.2, 0.35, 0.5, 0.08);
+    } else if (kit === "icu") {
+      add(B.metal, 0, 0.4, 0, 1.0, 0.75, 2.1);
+      add(B.linen, 0, 0.82, 0, 0.95, 0.12, 2.0);
+      add(B.dark, w * 0.28, 1.15, 0.3, 0.35, 1.5, 0.35);
+      add(B.lightCool, w * 0.28, 1.55, 0.48, 0.28, 0.18, 0.03);
+      B.cylMetal.add(mx - w * 0.22, y + 1.5, mz, 0.04, 1.2, 0.04);
+    } else if (kit === "lab") {
+      add(B.metal, 0, 0.9, -d * 0.2, span, 0.08, 0.75);
+      add(B.metal, 0, 0.45, -d * 0.2, span, 0.85, 0.65);
+      add(B.glass, w * 0.28, 1.25, d * 0.15, 0.45, 1.6, 0.9);
+      B.cylChina.add(mx - 0.4, y + 1.05, mz - d * 0.2, 0.06, 0.16, 0.06);
+      B.cylChina.add(mx + 0.15, y + 1.02, mz - d * 0.2, 0.05, 0.12, 0.05);
+      add(B.lightCool, 0, 2.2, -d * 0.2, span * 0.6, 0.04, 0.12);
+    }
+  }
+
   function furnish(r: RoomDef, y: number) {
     const mx = cx(r);
     const mz = -cy(r);
@@ -890,7 +1068,14 @@ export function createWorld(): WorldHandle {
       rotY = 0,
     ) => b.add(mx + dx, y + dy, mz + dz, sx, sy, sz, rotY);
 
-    if (t === "WARD" || t === "ICU") {
+    const named = roomKit(r.name);
+    if (r.floor === "F1" && (r.slot === "WW2" || r.id === "F1-DINING")) {
+      furnishDining(add, w, d, y, mx, mz);
+    } else if (r.floor === "F1" && (r.slot === "WW1" || r.id === "F1-KITCHEN")) {
+      furnishKitchen(add, w, d, y, mx, mz);
+    } else if (named) {
+      furnishKit(named, add, w, d, y, mx, mz);
+    } else if (t === "WARD" || t === "ICU") {
       for (let i = 0; i < 2; i++) {
         const dx = (i === 0 ? -1 : 1) * Math.min(2.2, w * 0.28);
         add(B.metal, dx, 0.32, 0, 0.95, 0.64, 2.05);
@@ -909,10 +1094,6 @@ export function createWorld(): WorldHandle {
       add(B.wood, 0, 0.36, -d * 0.12, 1.5, 0.7, 0.08);
       add(B.dark, 0, 0.5, 0.35, 0.42, 0.9, 0.42);
       add(B.wood, w * 0.32, 1.0, 0, 0.4, 2.0, 1.4);
-    } else if (r.floor === "F1" && (r.slot === "WW2" || r.id === "F1-DINING")) {
-      furnishDining(add, w, d, y, mx, mz);
-    } else if (r.floor === "F1" && (r.slot === "WW1" || r.id === "F1-KITCHEN")) {
-      furnishKitchen(add, w, d, y, mx, mz);
     } else if (t === "CONF" || t === "DINING") {
       add(B.wood, 0, 0.74, 0, Math.min(w * 0.7, 5.2), 0.08, Math.min(d * 0.35, 1.6));
       for (let i = -2; i <= 2; i++) {
@@ -1363,8 +1544,24 @@ export function createWorld(): WorldHandle {
       const t = r.type;
       const isNew = mx > NEW_WING_X;
       const lift = r.slot === "LIFT" || r.id.endsWith("-L");
+      const tone = wallTone(r.name, t);
+      const kit = roomKit(r.name);
       const slab = (b: Instancer) => b.add(mx, y + 0.02, mz, w, 0.04, d);
-      if (t === "DINING" || t === "CONF") slab(B.parquet);
+      if (kit === "or" || kit === "sterile" || kit === "locker" || kit === "procedure" || kit === "preop") {
+        slab(B.floorEpoxy);
+      } else if (kit === "laundry" || kit === "pharmacy") slab(B.tile);
+      else if (
+        kit === "boiler" ||
+        kit === "switchgear" ||
+        kit === "vent" ||
+        kit === "water" ||
+        kit === "workshop" ||
+        kit === "waste"
+      ) {
+        slab(B.floorCon);
+      } else if (kit === "lab" || kit === "samples" || kit === "ct") slab(B.floorLab);
+      else if (kit === "morgue" || kit === "coldstore") slab(B.floorMorgue);
+      else if (t === "DINING" || t === "CONF") slab(B.parquet);
       else if (t === "KITCHEN") slab(B.tile);
       else if (t === "OR" || t === "ICU") slab(B.floorEpoxy);
       else if (t === "WC") slab(B.floorWc);
@@ -1427,22 +1624,22 @@ export function createWorld(): WorldHandle {
           const gap = 1.2;
           const half = (ed.len - gap) / 2;
           if (ed.e === "N" || ed.e === "S") {
-            wallPair(isNew, ed.x - (gap / 2 + half / 2), ed.z, half, th, y, lowerH, upperH);
-            wallPair(isNew, ed.x + (gap / 2 + half / 2), ed.z, half, th, y, lowerH, upperH);
-            const hi = isNew ? B.plasterNew : B.plaster;
+            wallPair(isNew, ed.x - (gap / 2 + half / 2), ed.z, half, th, y, lowerH, upperH, tone);
+            wallPair(isNew, ed.x + (gap / 2 + half / 2), ed.z, half, th, y, lowerH, upperH, tone);
+            const hi = upperWall(isNew, tone);
             hi.add(ed.x, y + 2.2 + (h - 2.2) / 2, ed.z, gap, h - 2.2, th);
             B.wood.add(ed.x + 0.45, y + 1.1, ed.z, 0.9, 2.2, 0.05);
             hangDoorPlate(r, ed.e, ed.x, ed.z, y, gap);
           } else {
-            wallPair(isNew, ed.x, ed.z - (gap / 2 + half / 2), th, half, y, lowerH, upperH);
-            wallPair(isNew, ed.x, ed.z + (gap / 2 + half / 2), th, half, y, lowerH, upperH);
-            const hi = isNew ? B.plasterNew : B.plaster;
+            wallPair(isNew, ed.x, ed.z - (gap / 2 + half / 2), th, half, y, lowerH, upperH, tone);
+            wallPair(isNew, ed.x, ed.z + (gap / 2 + half / 2), th, half, y, lowerH, upperH, tone);
+            const hi = upperWall(isNew, tone);
             hi.add(ed.x, y + 2.2 + (h - 2.2) / 2, ed.z, th, h - 2.2, gap);
             B.wood.add(ed.x, y + 1.1, ed.z + 0.45, 0.05, 2.2, 0.9);
             hangDoorPlate(r, ed.e, ed.x, ed.z, y, gap);
           }
         } else {
-          wallPair(isNew, ed.x, ed.z, ed.sx, ed.sz, y, lowerH, upperH);
+          wallPair(isNew, ed.x, ed.z, ed.sx, ed.sz, y, lowerH, upperH, tone);
         }
       }
       furnish(r, y);
