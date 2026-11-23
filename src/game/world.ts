@@ -1662,15 +1662,16 @@ export function createWorld(): WorldHandle {
     for (const b of Object.values(B)) b.commit();
   }
 
-  buildFloor("F1");
   interior.visible = false;
 
   const _rainTmp = new THREE.Object3D();
   const _rainUp = new THREE.Vector3(0, 1, 0);
   const _rainDir = new THREE.Vector3();
-  const STREAKS = 4800;
-  const SPLASHES = 320;
-  const BOUNCE = 240;
+  const coarse =
+    typeof matchMedia !== "undefined" && matchMedia("(max-width: 820px), (pointer: coarse)").matches;
+  const STREAKS = coarse ? 700 : 4800;
+  const SPLASHES = coarse ? 80 : 320;
+  const BOUNCE = coarse ? 60 : 240;
   const RAIN_G = 22;
   const WIND_BASE_X = 1.35;
   const WIND_BASE_Z = 5.6;

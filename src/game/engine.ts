@@ -52,12 +52,14 @@ export function mountEngine(
   canvas: HTMLCanvasElement,
   onChange: () => void,
 ): Engine {
+  const phone =
+    window.matchMedia("(max-width: 820px)").matches || window.matchMedia("(pointer: coarse)").matches;
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: true,
-    powerPreference: "high-performance",
+    antialias: !phone,
+    powerPreference: phone ? "low-power" : "high-performance",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(phone ? 1 : Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(canvas.clientWidth || 1280, canvas.clientHeight || 720, false);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -148,10 +150,14 @@ export function mountEngine(
     for (const [lamp, base] of lampBase) lamp.intensity = base * look.lamps;
   }
   const pmrem = new THREE.PMREMGenerator(renderer);
-  const envSrc = nightEnv();
-  scene.environment = pmrem.fromEquirectangular(envSrc).texture;
-  scene.environmentIntensity = 0.55;
-  envSrc.dispose();
+  try {
+    const envSrc = nightEnv();
+    scene.environment = pmrem.fromEquirectangular(envSrc).texture;
+    scene.environmentIntensity = 0.55;
+    envSrc.dispose();
+  } catch {
+    scene.environment = null;
+  }
   pmrem.dispose();
 
   let mode: GameMode = "title";

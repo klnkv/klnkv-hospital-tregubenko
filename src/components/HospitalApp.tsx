@@ -43,21 +43,32 @@ export function HospitalApp() {
   const [query, setQuery] = useState("");
   const [filterFloor, setFilterFloor] = useState<FloorId | "ALL">("F1");
   const [bootError, setBootError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
   const returnMode = useRef<GameMode>("walk");
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    try {
-      const eng = mountEngine(canvas, () => {
+    let eng: Engine | null = null;
+    let cancelled = false;
+    const id = window.setTimeout(() => {
+      if (cancelled) return;
+      try {
+        eng = mountEngine(canvas, () => {
+          if (eng) setSnap(eng.snapshot());
+        });
+        engineRef.current = eng;
         setSnap(eng.snapshot());
-      });
-      engineRef.current = eng;
-      setSnap(eng.snapshot());
-      return () => eng.dispose();
-    } catch (err) {
-      setBootError(err instanceof Error ? err.message : String(err));
-    }
+        setReady(true);
+      } catch (err) {
+        setBootError(err instanceof Error ? err.message : String(err));
+      }
+    }, 50);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(id);
+      eng?.dispose();
+    };
   }, []);
 
   const passage = findPassage(snap.roomId, snap.floor, snap.x, snap.y);
@@ -120,7 +131,13 @@ export function HospitalApp() {
 
       {bootError && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-bg p-6 text-fg">
-          <p className="max-w-md text-sm">{bootError}</p>
+          <p className="max-w-md text-sm">Не открылось: {bootError}</p>
+        </div>
+      )}
+      {!ready && !bootError && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-bg text-fg">
+          <p className="font-display text-2xl">Больница №6</p>
+          <p className="text-sm text-subtle">Собираем корпус…</p>
         </div>
       )}
 
