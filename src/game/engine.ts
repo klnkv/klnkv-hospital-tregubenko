@@ -149,16 +149,18 @@ export function mountEngine(
     fill.intensity = look.fillIntensity;
     for (const [lamp, base] of lampBase) lamp.intensity = base * look.lamps;
   }
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  try {
-    const envSrc = nightEnv();
-    scene.environment = pmrem.fromEquirectangular(envSrc).texture;
-    scene.environmentIntensity = 0.55;
-    envSrc.dispose();
-  } catch {
-    scene.environment = null;
+  if (!phone) {
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    try {
+      const envSrc = nightEnv();
+      scene.environment = pmrem.fromEquirectangular(envSrc).texture;
+      scene.environmentIntensity = 0.55;
+      envSrc.dispose();
+    } catch {
+      scene.environment = null;
+    }
+    pmrem.dispose();
   }
-  pmrem.dispose();
 
   let mode: GameMode = "title";
   let floor: FloorId = "F1";
@@ -188,8 +190,8 @@ export function mountEngine(
     return window.matchMedia("(pointer: coarse)").matches;
   }
 
-  world.setInteriorFloor(floor);
   world.setMassingVisible(true);
+  const interiorBoot = window.setTimeout(() => world.setInteriorFloor(floor), phone ? 700 : 0);
 
   const held = (): Keys => {
     if (injectKeys) return new Set(injectKeys);
@@ -603,6 +605,7 @@ export function mountEngine(
 
   function dispose() {
     cancelAnimationFrame(raf);
+    window.clearTimeout(interiorBoot);
     window.removeEventListener("keydown", onKeyDown);
     window.removeEventListener("keyup", onKeyUp);
     window.removeEventListener("resize", resize);

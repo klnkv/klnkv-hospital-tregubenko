@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { FLOOR_LABEL, FLOOR_ORDER, FLOOR_PLAN_IMG, TYPE_COLOR, TYPE_LABEL } from "@/game/constants";
-import { mountEngine, type Engine } from "@/game/engine";
+import type { Engine } from "@/game/engine";
 import { allRooms, cx, cy, roomsOn } from "@/game/layout";
 import { findPassage, locById } from "@/game/town";
 import { SHOTS, type ShotId } from "@/game/shots";
@@ -52,18 +52,20 @@ export function HospitalApp() {
     let eng: Engine | null = null;
     let cancelled = false;
     const id = window.setTimeout(() => {
-      if (cancelled) return;
-      try {
-        eng = mountEngine(canvas, () => {
-          if (eng) setSnap(eng.snapshot());
+      void import("@/game/engine")
+        .then(({ mountEngine }) => {
+          if (cancelled || !canvas.isConnected) return;
+          eng = mountEngine(canvas, () => {
+            if (eng) setSnap(eng.snapshot());
+          });
+          engineRef.current = eng;
+          setSnap(eng.snapshot());
+          setReady(true);
+        })
+        .catch((err: unknown) => {
+          setBootError(err instanceof Error ? err.message : String(err));
         });
-        engineRef.current = eng;
-        setSnap(eng.snapshot());
-        setReady(true);
-      } catch (err) {
-        setBootError(err instanceof Error ? err.message : String(err));
-      }
-    }, 50);
+    }, 30);
     return () => {
       cancelled = true;
       window.clearTimeout(id);
@@ -121,7 +123,7 @@ export function HospitalApp() {
   });
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden bg-bg text-fg">
+    <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-bg text-fg">
       <canvas
         ref={canvasRef}
         className="absolute inset-0 h-full w-full touch-none"
